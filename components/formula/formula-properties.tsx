@@ -1,0 +1,69 @@
+import { Bookmark, Copy, Share, Eye } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { FormulaData } from '@/app/formula/data';
+
+interface FormulaPropertiesProps {
+  formulaData: FormulaData;
+}
+
+export function FormulaProperties({ formulaData }: FormulaPropertiesProps) {
+  return (
+    <div className="glass-panel bg-white/60 dark:bg-white/5 border border-gray-200 dark:border-white/10 shadow-glass rounded-2xl p-6 max-w-2xl mx-auto">
+      <div className="flex items-start justify-between mb-4">
+        <div>
+          <h2 className="text-xl font-display font-semibold text-gray-900 dark:text-white mb-1">
+            Full Formula Properties
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Category: {formulaData.meta.category}
+          </p>
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-lg hover:bg-gray-200 dark:hover:bg-white/10"
+        >
+          <Bookmark className="h-5 w-5" />
+        </Button>
+      </div>
+
+      <div className="space-y-3 text-sm mb-4">
+        {Object.entries(formulaData.fullFormula7Vector).filter(([key]) => key !== 'narrative').map(([key, value]) => (
+          <div key={key} className="flex justify-between">
+            <span className="text-gray-500 dark:text-gray-400 font-medium">{key}:</span>
+            <span className="text-gray-900 dark:text-white text-right max-w-[60%]">{value}</span>
+          </div>
+        ))}
+      </div>
+
+      <div className="mb-4 p-3 bg-gray-50 dark:bg-white/5 rounded-lg">
+        <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+          {formulaData.fullFormula7Vector.narrative}
+        </p>
+      </div>
+
+      <div className="mt-6 pt-4 border-t border-gray-200 dark:border-white/10 flex items-center justify-between">
+        <div className="flex space-x-3">
+          <Button
+            variant="ghost"
+            className="flex items-center space-x-2 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 rounded-lg text-sm"
+          >
+            <Copy className="h-4 w-4" />
+            <span>Copy LaTeX</span>
+          </Button>
+          <Button
+            variant="ghost"
+            className="flex items-center space-x-2 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 rounded-lg text-sm"
+          >
+            <Share className="h-4 w-4" />
+            <span>Share</span>
+          </Button>
+        </div>
+        <div className="flex items-center space-x-2 text-xs text-gray-400 dark:text-gray-500">
+          <Eye className="h-4 w-4" />
+          <span>1.2k views</span>
+        </div>
+      </div>
+    </div>
+  );
+}
