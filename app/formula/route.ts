@@ -13,14 +13,16 @@ const SevenVectorSchema = z.object({
   Geometric: z.string().describe("Geometric interpretation or meaning"),
   Invariant: z.string().describe("What remains constant or invariant"),
   Limits: z.string().describe("Behavior at limits or extremes"),
-  narrative: z.string().describe("2-3 sentence explanation of significance and behavior")
+  narrative: z.string().describe("2-3 sentence explanation of significance and behavior"),
+  babyDefinition: z.string().describe("Baby fast definition - a very simple, intuitive explanation in 1-2 sentences for beginners")
 });
 
 // Schema for formula chunks
 const FormulaChunkSchema = z.object({
   chunk: z.string().describe("LaTeX representation of this formula component"),
   displayName: z.string().describe("Human readable name for this component"),
-  "7Vector": SevenVectorSchema
+  "7Vector": SevenVectorSchema,
+  babyDefinition: z.string().describe("Baby fast definition - a very simple, intuitive explanation in 1-2 sentences for beginners")
 });
 
 // Schema for the complete formula data
@@ -58,11 +60,12 @@ export async function POST(request: NextRequest) {
         1. Create proper LaTeX notation for all mathematical expressions
         2. Break the formula into meaningful chunks/components
         3. Provide complete 7-Vector analysis for each component and the full formula
-        4. Use proper mathematical terminology and notation
-        5. Ensure the slug is URL-friendly (kebab-case)
-        6. Make narratives educational and insightful (2-3 sentences each)
-        7. Include appropriate operators between chunks
-        8. Choose a relevant mathematical category
+        4. MUST provide "babyDefinition" for BOTH the main formula AND each component - very simple, intuitive explanations in 1-2 sentences for beginners
+        5. Use proper mathematical terminology and notation
+        6. Ensure the slug is URL-friendly (kebab-case)
+        7. Make narratives educational and insightful (2-3 sentences each)
+        8. Include appropriate operators between chunks
+        9. Choose a relevant mathematical category
 
         The 7-Vector properties should be:
         - Role: What this component does mathematically
@@ -73,6 +76,16 @@ export async function POST(request: NextRequest) {
         - Invariant: What stays constant
         - Limits: Behavior at mathematical limits
         - narrative: Educational explanation of significance
+        - babyDefinition: REQUIRED simple explanation for beginners
+
+        Baby definitions are REQUIRED for BOTH main formula AND sub-components and should be:
+        - Very simple explanations that a beginner could understand
+        - 1-2 sentences maximum
+        - Use everyday language when possible
+        - Focus on intuitive understanding rather than technical details
+        - Example for main formula: "This formula tells us how likely something is to happen based on a bell curve pattern"
+        - Example for component: "This part makes sure the total area under the curve equals 1" instead of "Normalizing constant ensuring unit probability"
+        - NEVER leave this field empty or null for ANY component or the main formula
 
         Examples of good LaTeX chunks:
         - "\\\\frac{1}{\\\\sigma\\\\sqrt{2\\\\pi}}" for normalizing constants

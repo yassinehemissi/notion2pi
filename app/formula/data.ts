@@ -11,6 +11,7 @@ export interface FormulaChunk {
     Limits: string;
     narrative: string;
   };
+  babyDefinition: string | null; // Nullable baby fast definition
 }
 
 export interface FormulaData {
@@ -29,6 +30,7 @@ export interface FormulaData {
     Invariant: string;
     Limits: string;
     narrative: string;
+    babyDefinition: string | null; // Baby definition for the full formula
   };
   subFormulas: FormulaChunk[];
   operators: string[]; // Operators between chunks (e.g., ["+", "="])

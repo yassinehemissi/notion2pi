@@ -1,6 +1,7 @@
 import { Bookmark, Copy, Share, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { GlassPanel } from '@/components/glass-panel';
+import { MixedLatexText } from '@/components/mixed-latex-text';
 import { FormulaData } from '@/app/formula/data';
 import { useToast } from '@/hooks/use-toast';
 
@@ -65,17 +66,32 @@ export function FormulaProperties({ formulaData }: FormulaPropertiesProps) {
       </div>
 
       <div className="space-y-3 text-sm mb-4">
-        {Object.entries(formulaData.fullFormula7Vector).filter(([key]) => key !== 'narrative').map(([key, value]) => (
+        {Object.entries(formulaData.fullFormula7Vector).filter(([key]) => key !== 'narrative' && key !== 'babyDefinition').map(([key, value]) => (
           <div key={key} className="flex justify-between">
             <span className="text-gray-500 dark:text-gray-400 font-medium">{key}:</span>
-            <span className="text-gray-900 dark:text-white text-right max-w-[60%]">{value}</span>
+            <span className="text-gray-900 dark:text-white text-right max-w-[60%]">
+              <MixedLatexText>{value as string}</MixedLatexText>
+            </span>
           </div>
         ))}
       </div>
 
+      {/* Baby Definition Card */}
+      {formulaData.fullFormula7Vector.babyDefinition && (
+        <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800/30">
+          <div className="flex items-center space-x-2 mb-2">
+            <span className="text-lg">👶</span>
+            <h4 className="text-sm font-medium text-blue-800 dark:text-blue-200">Baby Fast Definition</h4>
+          </div>
+          <p className="text-sm text-blue-700 dark:text-blue-300 leading-relaxed">
+            <MixedLatexText>{formulaData.fullFormula7Vector.babyDefinition}</MixedLatexText>
+          </p>
+        </div>
+      )}
+
       <div className="mb-4 p-3 bg-gray-50 dark:bg-white/5 rounded-lg">
         <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-          {formulaData.fullFormula7Vector.narrative}
+          <MixedLatexText>{formulaData.fullFormula7Vector.narrative}</MixedLatexText>
         </p>
       </div>
 
@@ -97,10 +113,6 @@ export function FormulaProperties({ formulaData }: FormulaPropertiesProps) {
             <Share className="h-4 w-4" />
             <span>Share</span>
           </Button>
-        </div>
-        <div className="flex items-center space-x-2 text-xs text-gray-400 dark:text-gray-500">
-          <Eye className="h-4 w-4" />
-          <span>1.2k views</span>
         </div>
       </div>
     </GlassPanel>

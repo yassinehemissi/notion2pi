@@ -277,4 +277,43 @@
       transform: scale(0.95) translateY(-10px);
     }
   }
+
+  /* KaTeX Responsiveness */
+  .katex-display {
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0.5rem 0;
+  }
+
+  .katex {
+    font-size: 1em !important;
+  }
+
+  /* Mobile responsiveness for KaTeX */
+  @media (max-width: 640px) {
+    .katex {
+      font-size: 0.9em !important;
+    }
+    
+    .katex-display {
+      font-size: 0.85em !important;
+      padding: 0.25rem 0;
+    }
+
+    /* Allow horizontal scrolling for large formulas */
+    .katex-display > .katex {
+      white-space: nowrap;
+      min-width: max-content;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .katex {
+      font-size: 0.8em !important;
+    }
+    
+    .katex-display {
+      font-size: 0.75em !important;
+    }
+  }
 }

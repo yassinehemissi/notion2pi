@@ -2,6 +2,7 @@ import { X, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FormulaChunk } from '@/app/formula/data';
 import { LaTeXRenderer } from '@/components/latex-renderer';
+import { MixedLatexText } from '@/components/mixed-latex-text';
 import { useToast } from '@/hooks/use-toast';
 import { useState, useEffect } from 'react';
 
@@ -115,8 +116,25 @@ export function FormulaModal({
 
         <div className="mb-6 p-4 bg-gray-50 dark:bg-white/5 rounded-lg">
           <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-            {selectedChunk["7Vector"].narrative}
+            <MixedLatexText>{selectedChunk["7Vector"].narrative}</MixedLatexText>
           </p>
+        </div>
+
+        {/* Baby Definition Card */}
+        <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/30 rounded-lg">
+          <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-2 flex items-center">
+            <span className="text-xs mr-2">👶</span>
+            Baby Fast Definition
+          </h3>
+          {selectedChunk.babyDefinition ? (
+            <p className="text-blue-700 dark:text-blue-200 text-sm leading-relaxed">
+              <MixedLatexText>{selectedChunk.babyDefinition}</MixedLatexText>
+            </p>
+          ) : (
+            <p className="text-blue-600 dark:text-blue-400 text-sm italic">
+              No baby definition available for this component.
+            </p>
+          )}
         </div>
 
         <div className="space-y-4 mb-6">
@@ -130,7 +148,7 @@ export function FormulaModal({
                   {key}
                 </div>
                 <div className="text-gray-900 dark:text-white">
-                  {value as string}
+                  <MixedLatexText>{value as string}</MixedLatexText>
                 </div>
               </div>
             ))}

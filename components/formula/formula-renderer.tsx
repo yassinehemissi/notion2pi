@@ -13,24 +13,24 @@ export function FormulaRenderer({ formulaData, onChunkClick }: FormulaRendererPr
 
       <div className="relative mb-6">
         {/* Complete LaTeX formula - uninterrupted */}
-        <div className="flex items-center justify-center text-5xl font-light text-black dark:text-white mb-4">
-          <LaTeXRenderer className="text-5xl">
+        <div className="flex items-center justify-center text-3xl sm:text-4xl lg:text-5xl font-light text-black dark:text-white mb-4">
+          <LaTeXRenderer className="text-3xl sm:text-4xl lg:text-5xl">
             {formulaData.meta.latex}
           </LaTeXRenderer>
         </div>
 
         {/* Clickable components below, comma-separated */}
-        <div className="flex items-center justify-center flex-wrap gap-1 text-2xl text-gray-600 dark:text-gray-400">
+        <div className="flex items-center justify-center flex-wrap gap-1 text-lg sm:text-xl lg:text-2xl text-gray-600 dark:text-gray-400">
           {formulaData.subFormulas.map((chunk, index) => (
             <span key={index} className="flex items-center">
               <ClickableLaTeX
                 latex={chunk.chunk}
                 displayName={chunk.displayName}
                 onClick={() => onChunkClick(chunk.chunk)}
-                className="text-2xl hover:text-black dark:hover:text-white transition-colors cursor-pointer"
+                className="text-lg sm:text-xl lg:text-2xl hover:text-black dark:hover:text-white transition-colors cursor-pointer"
               />
               {index < formulaData.subFormulas.length - 1 && (
-                <span className="text-2xl mx-1 text-gray-400">
+                <span className="text-lg sm:text-xl lg:text-2xl mx-1 text-gray-400">
                   ,
                 </span>
               )}
