@@ -2,14 +2,14 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { getFormulaData, FormulaChunk } from '../data';
+import { FormulaData, FormulaChunk } from '../data';
 import { FloatingFormulas } from '@/components/floating-formulas';
 import { FormulaHeader } from '@/components/formula/formula-header';
 import { FormulaRenderer } from '@/components/formula/formula-renderer';
 import { FormulaProperties } from '@/components/formula/formula-properties';
 import { FormulaModal } from '@/components/formula/formula-modal';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 
 interface DynamicFormulaPageProps {}
 
@@ -19,10 +19,39 @@ export default function DynamicFormulaPage({}: DynamicFormulaPageProps) {
   
   const [selectedChunk, setSelectedChunk] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formulaData, setFormulaData] = useState<FormulaData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
-  // Get formula data
-  const formulaData = getFormulaData(slug);
+  // Load formula data
+  useEffect(() => {
+    const loadFormula = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch(`/api/formulas/${slug}`);
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            setError('Formula not found');
+          } else {
+            setError('Failed to load formula');
+          }
+          return;
+        }
+
+        const data = await response.json();
+        setFormulaData(data);
+      } catch (err) {
+        console.error('Error loading formula:', err);
+        setError('Failed to load formula');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadFormula();
+  }, [slug]);
 
   // Close modal on escape key
   useEffect(() => {
@@ -43,16 +72,31 @@ export default function DynamicFormulaPage({}: DynamicFormulaPageProps) {
     };
   }, [isModalOpen]);
 
-  // If formula not found, show 404
-  if (!formulaData) {
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-600 dark:text-gray-400">Loading formula...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error || !formulaData) {
     return (
       <div className="min-h-screen w-full flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            Formula Not Found
+            {error === 'Formula not found' ? 'Formula Not Found' : 'Error Loading Formula'}
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mb-8">
-            The formula &quot;{slug}&quot; could not be found.
+            {error === 'Formula not found' 
+              ? `The formula "${slug}" could not be found.`
+              : 'There was an error loading the formula. Please try again.'
+            }
           </p>
           <Link
             href="/"
@@ -77,7 +121,7 @@ export default function DynamicFormulaPage({}: DynamicFormulaPageProps) {
   };
 
   const getSelectedSubFormula = (): FormulaChunk | null => {
-    return formulaData.subFormulas.find(sf => sf.chunk === selectedChunk) || null;
+    return formulaData.subFormulas.find((sf: FormulaChunk) => sf.chunk === selectedChunk) || null;
   };
 
   return (

@@ -1,20 +1,94 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
-import { ArrowRight, Search, Sparkles } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { FloatingFormulas } from '@/components/floating-formulas';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
+
+interface FormulaListItem {
+  slug: string;
+  formula: string;
+  category: string;
+}
 
 export default function Home() {
-  const [formulaName, setFormulaName] = useState('');
   const [description, setDescription] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [formulas, setFormulas] = useState<FormulaListItem[]>([]);
+  const [isLoadingFormulas, setIsLoadingFormulas] = useState(true);
+  const { toast } = useToast();
+  const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Load formulas on component mount
+  useEffect(() => {
+    const loadFormulas = async () => {
+      try {
+        const response = await fetch('/api/formulas');
+        if (response.ok) {
+          const formulaList = await response.json();
+          setFormulas(formulaList);
+        }
+      } catch (error) {
+        console.error('Failed to load formulas:', error);
+      } finally {
+        setIsLoadingFormulas(false);
+      }
+    };
+
+    loadFormulas();
+  }, []);
+
+  const handleGenerate = async () => {
+    if (!description.trim()) {
+      setError('Please enter a description');
+      return;
+    }
+
+    setIsGenerating(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/formula', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ description: description.trim() }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate formula');
+      }
+
+      const result = await response.json();
+      
+      toast({
+        title: "Formula Generated!",
+        description: `Successfully created ${result.formula}`,
+      });
+
+      // Redirect to the generated formula page
+      router.push(`/formula/${result.slug}`);
+
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
+      setError(errorMessage);
+      
+      toast({
+        title: "Generation Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -44,50 +118,92 @@ export default function Home() {
         </div>
 
         <div className="w-full glass-panel bg-white/60 dark:bg-white/5 border border-gray-200 dark:border-white/10 shadow-glass rounded-2xl p-8 md:p-10 transform transition-all duration-300 hover:scale-[1.01]">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-6">
             <div className="flex items-start justify-between mb-6">
               <div>
                 <h2 className="text-2xl font-display font-semibold text-gray-900 dark:text-white mb-1">
-                  Search for a formula
+                  Explore Formulas
                 </h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Type the name and the system will search for the closest occurance
+                  Browse existing formulas or generate new ones with AI
                 </p>
               </div>
               <Sparkles className="h-6 w-6 text-gray-400" />
             </div>
 
-            <div className="space-y-4">
-              <div>
-                <label
-                  htmlFor="formula-name"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                >
-                  Formula Name
-                </label>
-                <Input
-                  id="formula-name"
-                  placeholder="e.g., Pythagorean Theorem"
-                  value={formulaName}
-                  onChange={(e) => setFormulaName(e.target.value)}
-                  className="bg-white dark:bg-white/5 border-gray-300 dark:border-white/10 focus:ring-2 focus:ring-black dark:focus:ring-white"
-                />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Browse Formulas
+                </h3>
+                <div className="space-y-2">
+                  {isLoadingFormulas ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                    </div>
+                  ) : formulas.length > 0 ? (
+                    formulas.slice(0, 3).map((formula) => (
+                      <Link
+                        key={formula.slug}
+                        href={`/formula/${formula.slug}`}
+                        className="block p-3 bg-white dark:bg-white/5 rounded-lg border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
+                      >
+                        <div className="font-medium text-gray-900 dark:text-white">
+                          {formula.formula}
+                        </div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                          {formula.category}
+                        </div>
+                      </Link>
+                    ))
+                  ) : (
+                    <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+                      No formulas available
+                    </div>
+                  )}
+                </div>
               </div>
 
-             
-            </div>
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Generate New Formula
+                </h3>
+                <div className="space-y-3">
+                  <Textarea
+                    placeholder="e.g., 'The quadratic formula for solving ax² + bx + c = 0' or 'Einstein's mass-energy equivalence'"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={3}
+                    className="resize-none bg-white dark:bg-white/5 border-gray-300 dark:border-white/10"
+                  />
+                  
+                  {error && (
+                    <div className="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/20 p-2 rounded">
+                      {error}
+                    </div>
+                  )}
 
-            <div className="pt-4 flex items-center justify-end">
-
-              <Button
-                type="submit"
-                className="group bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-100 rounded-xl px-6"
-              >
-                Explain Formula
-                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-              </Button>
+                  <Button 
+                    onClick={handleGenerate} 
+                    disabled={isGenerating || !description.trim()}
+                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        Generate Formula
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
             </div>
-          </form>
+          </div>
         </div>
       </main>
 
