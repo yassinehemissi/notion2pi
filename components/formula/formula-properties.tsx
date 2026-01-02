@@ -2,12 +2,48 @@ import { Bookmark, Copy, Share, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { GlassPanel } from '@/components/glass-panel';
 import { FormulaData } from '@/app/formula/data';
+import { useToast } from '@/hooks/use-toast';
 
 interface FormulaPropertiesProps {
   formulaData: FormulaData;
 }
 
 export function FormulaProperties({ formulaData }: FormulaPropertiesProps) {
+  const { toast } = useToast();
+
+  const handleCopyLatex = async () => {
+    try {
+      await navigator.clipboard.writeText(formulaData.meta.latex);
+      toast({
+        title: "LaTeX Copied!",
+        description: "Formula LaTeX has been copied to clipboard",
+      });
+    } catch (err) {
+      toast({
+        title: "Copy Failed",
+        description: "Failed to copy LaTeX to clipboard",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleShare = async () => {
+    const currentUrl = window.location.href;
+    
+    try {
+      await navigator.clipboard.writeText(currentUrl);
+      toast({
+        title: "Link Copied!",
+        description: "Formula page link has been copied to clipboard",
+      });
+    } catch (err) {
+      toast({
+        title: "Share Failed",
+        description: "Failed to copy link to clipboard",
+        variant: "destructive",
+      });
+    }
+  };
   return (
     <GlassPanel className="p-6 max-w-2xl mx-auto">
       <div className="flex items-start justify-between mb-4">
@@ -47,6 +83,7 @@ export function FormulaProperties({ formulaData }: FormulaPropertiesProps) {
         <div className="flex space-x-3">
           <Button
             variant="ghost"
+            onClick={handleCopyLatex}
             className="flex items-center space-x-2 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 rounded-lg text-sm"
           >
             <Copy className="h-4 w-4" />
@@ -54,6 +91,7 @@ export function FormulaProperties({ formulaData }: FormulaPropertiesProps) {
           </Button>
           <Button
             variant="ghost"
+            onClick={handleShare}
             className="flex items-center space-x-2 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 rounded-lg text-sm"
           >
             <Share className="h-4 w-4" />

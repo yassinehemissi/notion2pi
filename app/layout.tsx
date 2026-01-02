@@ -1,30 +1,28 @@
-import './globals.css';
-import 'katex/dist/katex.min.css';
-import type { Metadata } from 'next';
-import { Inter, Playfair_Display } from 'next/font/google';
-import { ThemeProvider } from '@/components/theme-provider';
+import "./globals.css";
+import "katex/dist/katex.min.css";
+import type { Metadata } from "next";
+import { Inter, Playfair_Display } from "next/font/google";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/toaster";
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const playfair = Playfair_Display({
-  subsets: ['latin'],
-  variable: '--font-playfair',
+  subsets: ["latin"],
+  variable: "--font-playfair",
 });
 
 export const metadata: Metadata = {
-  title: 'Notion2Pi - Mathematics Visualized',
-  description: 'Explore mathematical formulas and concepts',
-  openGraph: {
-    images: [
+  title: "Notion2Pi - Abstract Math Simplified",
+  description: "A bit easier abstract math",
+  icons: {
+    icon: [
       {
-        url: 'https://bolt.new/static/og_default.png',
+        url: "/favicon-light.ico",
+        media: "(prefers-color-scheme: light)",
       },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    images: [
       {
-        url: 'https://bolt.new/static/og_default.png',
+        url: "/favicon-dark.ico",
+        media: "(prefers-color-scheme: dark)",
       },
     ],
   },
@@ -47,6 +45,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>
