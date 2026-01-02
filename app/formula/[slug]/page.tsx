@@ -11,7 +11,7 @@ import { FormulaModal } from '@/components/formula/formula-modal';
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { AppFooter } from '@/components/app-footer';
-import { useApiError } from '@/hooks/use-api-error';
+import { useFormulaQuery } from '@/hooks/use-formulas-query';
 
 interface DynamicFormulaPageProps {}
 
@@ -21,38 +21,10 @@ export default function DynamicFormulaPage({}: DynamicFormulaPageProps) {
   
   const [selectedChunk, setSelectedChunk] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formulaData, setFormulaData] = useState<FormulaData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const modalRef = useRef<HTMLDivElement>(null);
-  const { error, handleError } = useApiError();
-
-  // Load formula data
-  useEffect(() => {
-    const loadFormula = async () => {
-      try {
-        setIsLoading(true);
-        const response = await fetch(`/api/formulas/${slug}`);
-        
-        if (!response.ok) {
-          if (response.status === 404) {
-            handleError('Formula not found', 'not-found');
-          } else {
-            handleError('Failed to load formula', 'fetch-error');
-          }
-          return;
-        }
-
-        const data = await response.json();
-        setFormulaData(data);
-      } catch (err) {
-        handleError(err, 'load-formula');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadFormula();
-  }, [slug, handleError]);
+  
+  // Use React Query for data fetching
+  const { data: formulaData, isLoading, error } = useFormulaQuery(slug);
 
   // Close modal on escape key
   useEffect(() => {
@@ -84,7 +56,7 @@ export default function DynamicFormulaPage({}: DynamicFormulaPageProps) {
 
   // Error state
   if (error || !formulaData) {
-    const isNotFound = error?.code === 'not-found';
+    const isNotFound = error?.message === 'Formula not found';
     return (
       <ErrorBoundary
         title={isNotFound ? 'Formula Not Found' : 'Error Loading Formula'}

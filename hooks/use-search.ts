@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
-import { FormulaItem, PaginationInfo, SearchResponse, LoadingState } from '@/types/formula';
+import { useState, useCallback, useMemo } from 'react';
+import { useSearchQuery } from './use-formulas-query';
+import { FormulaItem, PaginationInfo } from '@/types/formula';
 
 interface UseSearchOptions {
   initialQuery?: string;
@@ -13,62 +14,26 @@ export function useSearch({
   debounceMs = 300 
 }: UseSearchOptions = {}) {
   const [searchQuery, setSearchQuery] = useState(initialQuery);
-  const [formulas, setFormulas] = useState<FormulaItem[]>([]);
-  const [pagination, setPagination] = useState<PaginationInfo | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [loadingState, setLoadingState] = useState<LoadingState>({
-    isLoading: true,
-    error: null
-  });
 
-  const fetchFormulas = useCallback(async (query: string = '', page: number = 1) => {
-    try {
-      setLoadingState({ isLoading: true, error: null });
-      
-      const params = new URLSearchParams({
-        q: query,
-        page: page.toString(),
-        limit: limit.toString()
-      });
+  // Use React Query for search with debouncing handled by query key changes
+  const { 
+    data, 
+    isLoading, 
+    error, 
+    refetch 
+  } = useSearchQuery(searchQuery, currentPage, limit);
 
-      const response = await fetch(`/api/formulas/search?${params}`);
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch formulas: ${response.status}`);
-      }
-
-      const data: SearchResponse = await response.json();
-      setFormulas(data.formulas);
-      setPagination(data.pagination);
-      setCurrentPage(page);
-      setLoadingState({ isLoading: false, error: null });
-    } catch (error) {
-      console.error('Error fetching formulas:', error);
-      setFormulas([]);
-      setPagination(null);
-      setLoadingState({
-        isLoading: false,
-        error: error instanceof Error ? error.message : 'Failed to fetch formulas'
-      });
-    }
-  }, [limit]);
-
-  // Search with debounce
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchFormulas(searchQuery, 1);
-    }, debounceMs);
-
-    return () => clearTimeout(timer);
-  }, [searchQuery, fetchFormulas, debounceMs]);
+  const formulas = useMemo(() => data?.formulas || [], [data]);
+  const pagination = useMemo(() => data?.pagination || null, [data]);
 
   const handlePageChange = useCallback((page: number) => {
-    fetchFormulas(searchQuery, page);
-  }, [searchQuery, fetchFormulas]);
+    setCurrentPage(page);
+  }, []);
 
   const handleSearchChange = useCallback((query: string) => {
     setSearchQuery(query);
-    setCurrentPage(1);
+    setCurrentPage(1); // Reset to first page on new search
   }, []);
 
   return {
@@ -76,9 +41,10 @@ export function useSearch({
     formulas,
     pagination,
     currentPage,
-    ...loadingState,
+    isLoading,
+    error: error ? { message: error.message } : null,
     handleSearchChange,
     handlePageChange,
-    refetch: () => fetchFormulas(searchQuery, currentPage)
+    refetch,
   };
 }

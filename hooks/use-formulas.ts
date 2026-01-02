@@ -1,44 +1,12 @@
-import { useState, useEffect } from 'react';
-import { FormulaListItem, LoadingState } from '@/types/formula';
+import { useFormulasQuery } from './use-formulas-query';
 
 export function useFormulas() {
-  const [formulas, setFormulas] = useState<FormulaListItem[]>([]);
-  const [loadingState, setLoadingState] = useState<LoadingState>({
-    isLoading: true,
-    error: null
-  });
-
-  useEffect(() => {
-    const loadFormulas = async () => {
-      try {
-        setLoadingState({ isLoading: true, error: null });
-        const response = await fetch("/api/formulas");
-        
-        if (!response.ok) {
-          throw new Error(`Failed to fetch formulas: ${response.status}`);
-        }
-        
-        const formulaList = await response.json();
-        setFormulas(formulaList);
-        setLoadingState({ isLoading: false, error: null });
-      } catch (error) {
-        console.error("Failed to load formulas:", error);
-        setLoadingState({ 
-          isLoading: false, 
-          error: error instanceof Error ? error.message : "Failed to load formulas" 
-        });
-      }
-    };
-
-    loadFormulas();
-  }, []);
+  const { data: formulas = [], isLoading, error, refetch } = useFormulasQuery();
 
   return {
     formulas,
-    ...loadingState,
-    refetch: () => {
-      setLoadingState({ isLoading: true, error: null });
-      // Re-trigger the effect by updating a dependency
-    }
+    isLoading,
+    error: error ? { message: error.message } : null,
+    refetch,
   };
 }

@@ -13,40 +13,27 @@ import { AppFooter } from "@/components/app-footer";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { useFormulas } from "@/hooks/use-formulas";
-import { useApiError } from "@/hooks/use-api-error";
+import { useGenerateFormulaMutation } from "@/hooks/use-formulas-query";
 
 export default function Home() {
   const [description, setDescription] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
   const { formulas, isLoading: isLoadingFormulas } = useFormulas();
-  const { error, handleError, clearError } = useApiError();
+  const generateFormulaMutation = useGenerateFormulaMutation();
 
   const handleGenerate = async () => {
     if (!description.trim()) {
-      handleError("Please enter a description", "validation");
+      toast({
+        title: "Validation Error",
+        description: "Please enter a description",
+        variant: "destructive",
+      });
       return;
     }
 
-    setIsGenerating(true);
-    clearError();
-
     try {
-      const response = await fetch("/formula", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ description: description.trim() }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to generate formula");
-      }
-
-      const result = await response.json();
+      const result = await generateFormulaMutation.mutateAsync(description.trim());
 
       toast({
         title: "Formula Generated!",
@@ -56,15 +43,11 @@ export default function Home() {
       // Redirect to the generated formula page
       router.push(`/formula/${result.slug}`);
     } catch (err) {
-      handleError(err, "generation");
-
       toast({
         title: "Generation Failed",
-        description: error?.message || "An unexpected error occurred",
+        description: err instanceof Error ? err.message : "An unexpected error occurred",
         variant: "destructive",
       });
-    } finally {
-      setIsGenerating(false);
     }
   };
 
@@ -124,18 +107,18 @@ export default function Home() {
                       className="w-full resize-none bg-white dark:bg-white/5 border-gray-300 dark:border-white/10"
                     />
 
-                    {error && (
+                    {generateFormulaMutation.error && (
                       <div className="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/20 p-2 rounded">
-                        {error.message}
+                        {generateFormulaMutation.error.message}
                       </div>
                     )}
 
                     <Button
                       onClick={handleGenerate}
-                      disabled={isGenerating || !description.trim()}
+                      disabled={generateFormulaMutation.isPending || !description.trim()}
                       className="w-full bg-gray-900 hover:bg-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700 text-white"
                     >
-                      {isGenerating ? (
+                      {generateFormulaMutation.isPending ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           Generating...

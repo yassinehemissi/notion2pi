@@ -11,11 +11,14 @@ import { LaTeXRenderer } from '@/components/latex-renderer';
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { AppFooter } from '@/components/app-footer';
 import { useSearch } from '@/hooks/use-search';
+import { usePrefetchFormula } from '@/hooks/use-formulas-query';
+
 import Link from 'next/link';
 
 export default function FormulaPage() {
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get('q') || '';
+  const prefetchFormula = usePrefetchFormula();
   
   const {
     searchQuery,
@@ -86,7 +89,11 @@ export default function FormulaPage() {
           {!isLoading && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {formulas.map((formula) => (
-                <Link key={formula.slug} href={`/formula/${formula.slug}`}>
+                <Link 
+                  key={formula.slug} 
+                  href={`/formula/${formula.slug}`}
+                  onMouseEnter={() => prefetchFormula(formula.slug)} // Prefetch on hover
+                >
                   <Card className="h-full hover:shadow-lg transition-shadow duration-200 cursor-pointer group">
                     <CardHeader className="pb-3">
                       <CardTitle className="text-lg group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
@@ -137,7 +144,7 @@ export default function FormulaPage() {
 
               <div className="flex items-center space-x-2">
                 {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                  let pageNum;
+                  let pageNum: number;
                   if (pagination.totalPages <= 5) {
                     pageNum = i + 1;
                   } else if (currentPage <= 3) {

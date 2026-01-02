@@ -15,7 +15,14 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(formula);
+    // Create response with cache headers
+    const response = NextResponse.json(formula);
+    
+    // Set long cache for individual formulas (they rarely change)
+    response.headers.set('Cache-Control', 'public, max-age=3600, stale-while-revalidate=7200'); // 1 hour cache, 2 hours stale
+    response.headers.set('ETag', `"formula-${params.slug}"`);
+    
+    return response;
   } catch (error) {
     console.error('Error fetching formula:', error);
     return NextResponse.json(
