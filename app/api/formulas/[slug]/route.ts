@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getFormulaBySlug } from '@/lib/database';
+import { DatabaseService } from '@/lib/database-service';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { slug: string } }
 ) {
   try {
-    const formula = getFormulaBySlug(params.slug);
+    const formula = await DatabaseService.getFormulaBySlug(params.slug);
     
     if (!formula) {
       return NextResponse.json(

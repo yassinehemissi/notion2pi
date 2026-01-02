@@ -1,9 +1,45 @@
+'use client';
+
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 export function FormulaHeader() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const router = useRouter();
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/browse?q=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      router.push('/browse');
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch(e);
+    }
+  };
+
+  // Handle ⌘K keyboard shortcut
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        inputRef.current?.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleGlobalKeyDown);
+    return () => document.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
+
   return (
     <header className="w-full max-w-6xl mx-auto p-6 z-20 flex justify-between items-center">
       <Link
@@ -16,13 +52,17 @@ export function FormulaHeader() {
         </span>
       </Link>
 
-      <div className="relative group w-96">
+      <form onSubmit={handleSearch} className="relative group w-96">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
           <Search className="h-4 w-4 text-gray-400 dark:text-gray-500 group-focus-within:text-black dark:group-focus-within:text-white transition-colors" />
         </div>
         <Input
+          ref={inputRef}
           type="text"
           placeholder="Search formulas or concepts..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyDown={handleKeyDown}
           className="pl-10 pr-16 bg-gray-100 dark:bg-white/5 border-transparent focus:bg-white dark:focus:bg-black/40 focus:ring-2 focus:ring-black dark:focus:ring-white rounded-xl glass-panel"
         />
         <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
@@ -30,7 +70,7 @@ export function FormulaHeader() {
             ⌘K
           </span>
         </div>
-      </div>
+      </form>
 
       <ThemeToggle />
     </header>

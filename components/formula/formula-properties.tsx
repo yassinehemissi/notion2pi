@@ -1,5 +1,6 @@
 import { Bookmark, Copy, Share, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { GlassPanel } from '@/components/glass-panel';
 import { FormulaData } from '@/app/formula/data';
 
 interface FormulaPropertiesProps {
@@ -8,7 +9,7 @@ interface FormulaPropertiesProps {
 
 export function FormulaProperties({ formulaData }: FormulaPropertiesProps) {
   return (
-    <div className="glass-panel bg-white/60 dark:bg-white/5 border border-gray-200 dark:border-white/10 shadow-glass rounded-2xl p-6 max-w-2xl mx-auto">
+    <GlassPanel className="p-6 max-w-2xl mx-auto">
       <div className="flex items-start justify-between mb-4">
         <div>
           <h2 className="text-xl font-display font-semibold text-gray-900 dark:text-white mb-1">
@@ -64,6 +65,6 @@ export function FormulaProperties({ formulaData }: FormulaPropertiesProps) {
           <span>1.2k views</span>
         </div>
       </div>
-    </div>
+    </GlassPanel>
   );
 }

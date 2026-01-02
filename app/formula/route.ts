@@ -2,7 +2,7 @@ import { openai } from '@ai-sdk/openai';
 import { generateObject } from 'ai';
 import { z } from 'zod';
 import { NextRequest, NextResponse } from 'next/server';
-import { saveFormula } from '@/lib/database';
+import { DatabaseService } from '@/lib/database-service';
 
 // Schema for the 7-Vector properties
 const SevenVectorSchema = z.object({
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Save the generated formula to the database
-    const formulaId = saveFormula(formulaData);
+    await DatabaseService.saveFormula(formulaData);
 
     // Return the slug for redirection
     return NextResponse.json({ 

@@ -247,8 +247,6 @@ const insertStaticFormulas = () => {
     VALUES (?, ?, ?, ?, ?)
   `);
 
-  const getFormulaId = db.prepare('SELECT id FROM formulas WHERE slug = ?');
-
   for (const formula of staticFormulas) {
     const result = insertFormula.run(
       formula.slug,
@@ -350,6 +348,74 @@ export const getAllFormulas = (): Array<{slug: string, formula: string, category
   `);
 
   return getAll.all() as Array<{slug: string, formula: string, category: string}>;
+};
+
+export const searchFormulas = (query: string, limit: number = 20, offset: number = 0): {
+  formulas: Array<{slug: string, formula: string, category: string, latex: string}>,
+  total: number
+} => {
+  const searchQuery = `%${query.toLowerCase()}%`;
+  
+  const searchStmt = db.prepare(`
+    SELECT slug, formula_name as formula, category, latex 
+    FROM formulas 
+    WHERE LOWER(formula_name) LIKE ? 
+       OR LOWER(category) LIKE ? 
+       OR LOWER(latex) LIKE ?
+    ORDER BY 
+      CASE 
+        WHEN LOWER(formula_name) LIKE ? THEN 1
+        WHEN LOWER(category) LIKE ? THEN 2
+        ELSE 3
+      END,
+      created_at DESC
+    LIMIT ? OFFSET ?
+  `);
+
+  const countStmt = db.prepare(`
+    SELECT COUNT(*) as total
+    FROM formulas 
+    WHERE LOWER(formula_name) LIKE ? 
+       OR LOWER(category) LIKE ? 
+       OR LOWER(latex) LIKE ?
+  `);
+
+  const formulas = searchStmt.all(
+    searchQuery, searchQuery, searchQuery, // WHERE conditions
+    searchQuery, searchQuery, // ORDER BY conditions
+    limit, offset
+  ) as Array<{slug: string, formula: string, category: string, latex: string}>;
+
+  const result = countStmt.get(searchQuery, searchQuery, searchQuery) as {total: number};
+
+  return {
+    formulas,
+    total: result.total
+  };
+};
+
+export const getFormulasWithPagination = (limit: number = 20, offset: number = 0): {
+  formulas: Array<{slug: string, formula: string, category: string, latex: string}>,
+  total: number
+} => {
+  const getFormulas = db.prepare(`
+    SELECT slug, formula_name as formula, category, latex 
+    FROM formulas 
+    ORDER BY created_at DESC
+    LIMIT ? OFFSET ?
+  `);
+
+  const getCount = db.prepare(`
+    SELECT COUNT(*) as total FROM formulas
+  `);
+
+  const formulas = getFormulas.all(limit, offset) as Array<{slug: string, formula: string, category: string, latex: string}>;
+  const result = getCount.get() as {total: number};
+
+  return {
+    formulas,
+    total: result.total
+  };
 };
 
 export default db;

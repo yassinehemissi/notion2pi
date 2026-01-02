@@ -8,8 +8,10 @@ import { FormulaHeader } from '@/components/formula/formula-header';
 import { FormulaRenderer } from '@/components/formula/formula-renderer';
 import { FormulaProperties } from '@/components/formula/formula-properties';
 import { FormulaModal } from '@/components/formula/formula-modal';
-import Link from 'next/link';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { LoadingSpinner } from '@/components/loading-spinner';
+import { ErrorBoundary } from '@/components/error-boundary';
+import { AppFooter } from '@/components/app-footer';
+import { useApiError } from '@/hooks/use-api-error';
 
 interface DynamicFormulaPageProps {}
 
@@ -21,8 +23,8 @@ export default function DynamicFormulaPage({}: DynamicFormulaPageProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formulaData, setFormulaData] = useState<FormulaData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
+  const { error, handleError } = useApiError();
 
   // Load formula data
   useEffect(() => {
@@ -33,9 +35,9 @@ export default function DynamicFormulaPage({}: DynamicFormulaPageProps) {
         
         if (!response.ok) {
           if (response.status === 404) {
-            setError('Formula not found');
+            handleError('Formula not found', 'not-found');
           } else {
-            setError('Failed to load formula');
+            handleError('Failed to load formula', 'fetch-error');
           }
           return;
         }
@@ -43,15 +45,14 @@ export default function DynamicFormulaPage({}: DynamicFormulaPageProps) {
         const data = await response.json();
         setFormulaData(data);
       } catch (err) {
-        console.error('Error loading formula:', err);
-        setError('Failed to load formula');
+        handleError(err, 'load-formula');
       } finally {
         setIsLoading(false);
       }
     };
 
     loadFormula();
-  }, [slug]);
+  }, [slug, handleError]);
 
   // Close modal on escape key
   useEffect(() => {
@@ -76,37 +77,23 @@ export default function DynamicFormulaPage({}: DynamicFormulaPageProps) {
   if (isLoading) {
     return (
       <div className="min-h-screen w-full flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-400">Loading formula...</p>
-        </div>
+        <LoadingSpinner size="lg" text="Loading formula..." />
       </div>
     );
   }
 
   // Error state
   if (error || !formulaData) {
+    const isNotFound = error?.code === 'not-found';
     return (
-      <div className="min-h-screen w-full flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            {error === 'Formula not found' ? 'Formula Not Found' : 'Error Loading Formula'}
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mb-8">
-            {error === 'Formula not found' 
-              ? `The formula "${slug}" could not be found.`
-              : 'There was an error loading the formula. Please try again.'
-            }
-          </p>
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Home
-          </Link>
-        </div>
-      </div>
+      <ErrorBoundary
+        title={isNotFound ? 'Formula Not Found' : 'Error Loading Formula'}
+        message={
+          isNotFound 
+            ? `The formula "${slug}" could not be found.`
+            : 'There was an error loading the formula. Please try again.'
+        }
+      />
     );
   }
 
@@ -148,11 +135,7 @@ export default function DynamicFormulaPage({}: DynamicFormulaPageProps) {
         modalRef={modalRef}
       />
 
-      <footer className="w-full text-center py-6 z-10">
-        <p className="text-xs text-gray-400 dark:text-gray-600 font-medium tracking-wider uppercase opacity-60 hover:opacity-100 transition-opacity cursor-default">
-          Notion2Pi © 2025 — Mathematics Visualized
-        </p>
-      </footer>
+      <AppFooter />
     </div>
   );
 }
