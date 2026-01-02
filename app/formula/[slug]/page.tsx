@@ -30,13 +30,35 @@ export default function DynamicFormulaPage({}: DynamicFormulaPageProps) {
     if (formulaData) {
       const initialParams: Record<string, number> = {};
       formulaData.subFormulas.forEach(subFormula => {
-        subFormula.visualization.parameters.forEach(param => {
-          initialParams[param.name] = param.default;
-        });
+        // Only process parameters if visualization exists
+        if (subFormula.visualization) {
+          subFormula.visualization.parameters.forEach(param => {
+            initialParams[param.name] = param.default;
+          });
+        }
       });
       setParameters(initialParams);
     }
   }, [formulaData]);
+
+  // Close modal on escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        closeModal();
+      }
+    };
+
+    if (isModalOpen) {
+      document.addEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isModalOpen]);
 
   // If formula not found, show 404
   if (!formulaData) {
@@ -47,7 +69,7 @@ export default function DynamicFormulaPage({}: DynamicFormulaPageProps) {
             Formula Not Found
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mb-8">
-            The formula "{slug}" could not be found.
+            The formula &quot;{slug}&quot; could not be found.
           </p>
           <Link
             href="/"
@@ -70,25 +92,6 @@ export default function DynamicFormulaPage({}: DynamicFormulaPageProps) {
     setIsModalOpen(false);
     setSelectedChunk(null);
   };
-
-  // Close modal on escape key
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        closeModal();
-      }
-    };
-
-    if (isModalOpen) {
-      document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
-    };
-  }, [isModalOpen]);
 
   // Close modal on backdrop click
   const handleBackdropClick = (e: React.MouseEvent) => {

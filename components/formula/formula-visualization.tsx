@@ -1,5 +1,5 @@
 import dynamic from 'next/dynamic';
-import { FormulaChunk } from '@/app/formula/data';
+import { FormulaChunk, evaluateExpression, getXValues } from '@/app/formula/data';
 
 // Dynamically import Plotly to avoid SSR issues
 const Plot = dynamic(() => import('react-plotly.js'), { ssr: false });
@@ -13,15 +13,268 @@ interface FormulaVisualizationProps {
 export function FormulaVisualization({ chunk, parameters, onParameterChange }: FormulaVisualizationProps) {
   const { visualization } = chunk;
 
-  if (visualization.type === 'normalizing_constant') {
-    const sigma = parameters.sigma || 1;
-    const sigmaValues = Array.from({ length: 100 }, (_, i) => 0.1 + (i * 2.9) / 99);
-    const normalizingValues = sigmaValues.map(s => 1 / (s * Math.sqrt(2 * Math.PI)));
-
+  // If no visualization is defined, show a message
+  if (!visualization) {
     return (
-      <div className="w-full">
+      <div className="w-full text-center py-8">
+        <p className="text-gray-500 dark:text-gray-400 italic">
+          No visualization available for this component
+        </p>
+      </div>
+    );
+  }
+
+  // Generate plot data based on expressions or custom data
+  const generatePlotData = () => {
+    const plotData: any[] = [];
+    
+    visualization.traces.forEach(trace => {
+      const traceData: any = {
+        name: trace.name,
+        type: trace.type,
+        mode: trace.mode || (trace.type === "scatter" ? "lines" : undefined),
+      };
+
+      // Handle expression-based traces
+      if (trace.expression) {
+        if (trace.type === 'scatter' && trace.mode === 'markers') {
+          // For marker traces, use current parameter values
+          const currentParams = { ...parameters };
+          visualization.parameters.forEach(param => {
+            if (!(param.name in currentParams)) {
+              currentParams[param.name] = param.default;
+            }
+          });
+          
+          // For parameter-based plots (like normalizing constant)
+          if (visualization.xAxisLabel.includes('σ') || visualization.xAxisLabel.includes('Standard')) {
+            const xValue = currentParams.sigma || currentParams[visualization.parameters[0]?.name] || 1;
+            const yValues = evaluateExpression(trace.expression, { ...currentParams, x: xValue });
+            traceData.x = [xValue];
+            traceData.y = [yValues[0]];
+          } else {
+            // For function-based plots
+            const xValues = getXValues(visualization.xRange || [-4, 4]);
+            const yValues = evaluateExpression(trace.expression, currentParams);
+            traceData.x = xValues;
+            traceData.y = yValues;
+          }
+        } else {
+          // For line traces
+          if (visualization.xAxisLabel.includes('σ') || visualization.xAxisLabel.includes('Standard')) {
+            // Parameter sweep for normalizing constant type plots
+            const xValues = getXValues(visualization.xRange || [0.1, 3]);
+            const yValues = xValues.map(x => {
+              const tempParams = { ...parameters, sigma: x };
+              const result = evaluateExpression(trace.expression as string, tempParams);
+              return result[0]; // Take first value since it's parameter-based
+            });
+            
+            traceData.x = xValues;
+            traceData.y = yValues;
+          } else {
+            // Function-based plots
+            const xValues = getXValues(visualization.xRange || [-4, 4]);
+            const yValues = evaluateExpression(trace.expression, parameters);
+            
+            traceData.x = xValues;
+            traceData.y = yValues;
+          }
+        }
+      } else {
+        // Handle custom data traces (direct Plotly data)
+        if (trace.x) traceData.x = trace.x;
+        if (trace.y) traceData.y = trace.y;
+        if (trace.z) traceData.z = trace.z;
+        if (trace.values) traceData.values = trace.values;
+        if (trace.labels) traceData.labels = trace.labels;
+        if (trace.text) traceData.text = trace.text;
+
+        // Handle special cases for dynamic data generation
+        if (trace.type === 'bar' && trace.x && !trace.y) {
+          // Generate bar chart data dynamically
+          const a = parameters.a || 3;
+          const b = parameters.b || 4;
+          const c = Math.sqrt(a * a + b * b);
+          
+          if (trace.name === 'Individual Areas') {
+            traceData.y = [a * a, b * b, c * c];
+          } else if (trace.name === 'Sum Verification' || trace.name === 'Sum: a² + b²') {
+            traceData.y = [a * a + b * b];
+          }
+        }
+
+        // Handle geometric triangle and squares visualization
+        if (trace.type === 'scatter' && trace.x && trace.x.length === 3 && trace.name === 'Right Triangle') {
+          const a = parameters.a || 3;
+          const b = parameters.b || 4;
+          traceData.x = [0, a, 0, 0];
+          traceData.y = [0, 0, b, 0];
+        }
+
+        if (trace.type === 'scatter' && trace.x && trace.x.length === 5) {
+          const a = parameters.a || 3;
+          const b = parameters.b || 4;
+          const c = Math.sqrt(a * a + b * b);
+          
+          if (trace.name?.includes('Square on side a')) {
+            // Square below the triangle on side a
+            traceData.x = [0, a, a, 0, 0];
+            traceData.y = [0, 0, -a, -a, 0];
+          } else if (trace.name?.includes('Square on side b')) {
+            // Square to the left of the triangle on side b
+            traceData.x = [0, 0, -b, -b, 0];
+            traceData.y = [0, b, b, 0, 0];
+          } else if (trace.name?.includes('Square on hypotenuse')) {
+            // Square on the hypotenuse (the most complex one)
+            // We need to rotate the square to align with the hypotenuse
+            const angle = Math.atan2(b, a); // Angle of the hypotenuse
+            
+            // Start from point (a, 0) and build the square perpendicular to hypotenuse
+            const cos_a = Math.cos(angle);
+            const sin_a = Math.sin(angle);
+            
+            // Vector perpendicular to hypotenuse with length c
+            const perp_x = -c * sin_a;
+            const perp_y = c * cos_a;
+            
+            // Four corners of the square on hypotenuse
+            const x1 = a, y1 = 0;           // Bottom right of triangle
+            const x2 = 0, y2 = b;           // Top left of triangle  
+            const x3 = x2 + perp_x, y3 = y2 + perp_y;  // Third corner
+            const x4 = x1 + perp_x, y4 = y1 + perp_y;  // Fourth corner
+            
+            traceData.x = [x1, x2, x3, x4, x1];
+            traceData.y = [y1, y2, y3, y4, y1];
+          }
+        }
+
+        if (trace.type === 'surface' && !trace.z) {
+          // Generate 3D surface data
+          const maxSide = parameters.max_side || 10;
+          const resolution = 20;
+          const step = maxSide / resolution;
+          
+          const xData = [];
+          const yData = [];
+          const zData = [];
+          
+          for (let i = 0; i <= resolution; i++) {
+            const row = [];
+            for (let j = 0; j <= resolution; j++) {
+              const a = i * step + 0.1; // Avoid zero
+              const b = j * step + 0.1;
+              const c = Math.sqrt(a * a + b * b);
+              row.push(c);
+            }
+            zData.push(row);
+          }
+          
+          // Generate x and y coordinate arrays
+          for (let i = 0; i <= resolution; i++) {
+            xData.push(i * step + 0.1);
+            yData.push(i * step + 0.1);
+          }
+          
+          traceData.x = xData;
+          traceData.y = yData;
+          traceData.z = zData;
+        }
+      }
+
+      // Apply styling
+      if (trace.marker) {
+        traceData.marker = { ...trace.marker };
+        if (!traceData.marker.color && trace.color) {
+          traceData.marker.color = trace.color;
+        }
+      } else if (trace.color) {
+        traceData.marker = { color: trace.color };
+      }
+
+      if (trace.line) {
+        traceData.line = { ...trace.line };
+        if (!traceData.line.color && trace.color) {
+          traceData.line.color = trace.color;
+        }
+        if (trace.style && !traceData.line.dash) {
+          traceData.line.dash = trace.style === 'dash' ? 'dash' : trace.style === 'dot' ? 'dot' : undefined;
+        }
+      } else if (trace.color && (trace.type === 'scatter' || !trace.type)) {
+        traceData.line = { 
+          color: trace.color, 
+          width: trace.name?.includes('Full') ? 2 : 3,
+          dash: trace.style === 'dash' ? 'dash' : undefined 
+        };
+      }
+
+      // Apply fill properties
+      if (trace.fill) traceData.fill = trace.fill;
+      if (trace.fillcolor) traceData.fillcolor = trace.fillcolor;
+
+      // Copy any additional Plotly properties
+      Object.keys(trace).forEach(key => {
+        if (!['name', 'color', 'type', 'mode', 'style', 'expression', 'x', 'y', 'z', 'values', 'labels', 'text', 'marker', 'line', 'fill', 'fillcolor'].includes(key)) {
+          traceData[key] = trace[key];
+        }
+      });
+      
+      plotData.push(traceData);
+    });
+    
+    return plotData;
+  };
+
+  // Build layout object
+  const buildLayout = () => {
+    const layout: any = {
+      title: { text: visualization.title },
+      xaxis: { title: { text: visualization.xAxisLabel } },
+      yaxis: { title: { text: visualization.yAxisLabel } },
+      showlegend: true,
+      paper_bgcolor: 'rgba(0,0,0,0)',
+      plot_bgcolor: 'rgba(0,0,0,0)',
+      font: { color: '#374151' },
+      margin: { t: 50, r: 50, b: 50, l: 50 }
+    };
+
+    // Add z-axis for 3D plots
+    if (visualization.zAxisLabel) {
+      layout.scene = {
+        xaxis: { title: { text: visualization.xAxisLabel } },
+        yaxis: { title: { text: visualization.yAxisLabel } },
+        zaxis: { title: { text: visualization.zAxisLabel } }
+      };
+    }
+
+    // Apply custom layout properties
+    if (visualization.layout) {
+      Object.assign(layout, visualization.layout);
+    }
+
+    return layout;
+  };
+
+  // Build config object
+  const buildConfig = () => {
+    const config: any = {
+      responsive: true,
+      displayModeBar: false
+    };
+
+    if (visualization.config) {
+      Object.assign(config, visualization.config);
+    }
+
+    return config;
+  };
+
+  return (
+    <div className="w-full">
+      {/* Parameter controls */}
+      <div className={`grid gap-4 mb-4 ${visualization.parameters.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
         {visualization.parameters.map(param => (
-          <div key={param.name} className="mb-4">
+          <div key={param.name}>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               {param.label}: {(parameters[param.name] || param.default).toFixed(2)}
             </label>
@@ -36,290 +289,15 @@ export function FormulaVisualization({ chunk, parameters, onParameterChange }: F
             />
           </div>
         ))}
-        <Plot
-          data={[
-            {
-              x: sigmaValues,
-              y: normalizingValues,
-              type: 'scatter',
-              mode: 'lines',
-              name: visualization.plotConfig.traces[0].name,
-              line: { color: visualization.plotConfig.traces[0].color, width: 3 }
-            },
-            {
-              x: [sigma],
-              y: [1 / (sigma * Math.sqrt(2 * Math.PI))],
-              type: 'scatter',
-              mode: 'markers',
-              name: visualization.plotConfig.traces[1].name,
-              marker: { color: visualization.plotConfig.traces[1].color, size: 10 }
-            }
-          ]}
-          layout={{
-            title: visualization.plotConfig.title,
-            xaxis: { title: visualization.plotConfig.xAxisLabel },
-            yaxis: { title: visualization.plotConfig.yAxisLabel },
-            showlegend: true,
-            paper_bgcolor: 'rgba(0,0,0,0)',
-            plot_bgcolor: 'rgba(0,0,0,0)',
-            font: { color: '#374151' },
-            margin: { t: 50, r: 50, b: 50, l: 50 }
-          }}
-          config={{ responsive: true, displayModeBar: false }}
-          style={{ width: '100%', height: '400px' }}
-        />
       </div>
-    );
-  }
 
-  if (visualization.type === 'exponential_decay') {
-    const mu = parameters.mu || 0;
-    const sigma = parameters.sigma || 1;
-    const x = Array.from({ length: 200 }, (_, i) => -4 + (i * 8) / 199);
-    const exponentialOnly = x.map(xi => Math.exp(-Math.pow(xi - mu, 2) / (2 * Math.pow(sigma, 2))));
-    const fullNormal = x.map(xi => 
-      (1 / (sigma * Math.sqrt(2 * Math.PI))) * Math.exp(-Math.pow(xi - mu, 2) / (2 * Math.pow(sigma, 2)))
-    );
-
-    return (
-      <div className="w-full">
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          {visualization.parameters.map(param => (
-            <div key={param.name}>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {param.label}: {(parameters[param.name] || param.default).toFixed(1)}
-              </label>
-              <input
-                type="range"
-                min={param.min}
-                max={param.max}
-                step={param.step}
-                value={parameters[param.name] || param.default}
-                onChange={(e) => onParameterChange(param.name, parseFloat(e.target.value))}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
-              />
-            </div>
-          ))}
-        </div>
-        <Plot
-          data={[
-            {
-              x: x,
-              y: exponentialOnly,
-              type: 'scatter',
-              mode: 'lines',
-              name: visualization.plotConfig.traces[0].name,
-              line: { color: visualization.plotConfig.traces[0].color, width: 3 }
-            },
-            {
-              x: x,
-              y: fullNormal,
-              type: 'scatter',
-              mode: 'lines',
-              name: visualization.plotConfig.traces[1].name,
-              line: { 
-                color: visualization.plotConfig.traces[1].color, 
-                width: 2, 
-                dash: visualization.plotConfig.traces[1].style === 'dash' ? 'dash' : undefined 
-              }
-            }
-          ]}
-          layout={{
-            title: visualization.plotConfig.title,
-            xaxis: { title: visualization.plotConfig.xAxisLabel },
-            yaxis: { title: visualization.plotConfig.yAxisLabel },
-            showlegend: true,
-            paper_bgcolor: 'rgba(0,0,0,0)',
-            plot_bgcolor: 'rgba(0,0,0,0)',
-            font: { color: '#374151' },
-            margin: { t: 50, r: 50, b: 50, l: 50 }
-          }}
-          config={{ responsive: true, displayModeBar: false }}
-          style={{ width: '100%', height: '400px' }}
-        />
-      </div>
-    );
-  }
-
-  if (visualization.type === 'custom') {
-    const a = parameters.a || 3;
-    const b = parameters.b || 4;
-    const c = Math.sqrt(a * a + b * b);
-
-    // Different visualizations based on which chunk is selected
-    if (chunk.chunk === 'a^2' || chunk.chunk === 'b^2') {
-      // Show the right triangle with squares
-      const triangleX = [0, a, 0, 0];
-      const triangleY = [0, 0, b, 0];
-
-      // Square on side a
-      const squareAX = [0, a, a, 0, 0];
-      const squareAY = [0, 0, -a, -a, 0];
-
-      // Square on side b
-      const squareBX = [0, 0, -b, -b, 0];
-      const squareBY = [0, b, b, 0, 0];
-
-      // Square on hypotenuse c
-      const angle = Math.atan2(b, a);
-      const cx1 = a + c * Math.cos(angle + Math.PI/2);
-      const cy1 = c * Math.sin(angle + Math.PI/2);
-      const cx2 = cx1 - c * Math.cos(angle);
-      const cy2 = cy1 - c * Math.sin(angle);
-      const cx3 = b * Math.cos(angle + Math.PI/2);
-      const cy3 = b + b * Math.sin(angle + Math.PI/2);
-
-      const squareCX = [a, cx1, cx2, cx3, a];
-      const squareCY = [0, cy1, cy2, cy3, 0];
-
-      return (
-        <div className="w-full">
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            {visualization.parameters.map(param => (
-              <div key={param.name}>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {param.label}: {(parameters[param.name] || param.default).toFixed(1)}
-                </label>
-                <input
-                  type="range"
-                  min={param.min}
-                  max={param.max}
-                  step={param.step}
-                  value={parameters[param.name] || param.default}
-                  onChange={(e) => onParameterChange(param.name, parseFloat(e.target.value))}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
-                />
-              </div>
-            ))}
-          </div>
-          <div className="mb-4 p-3 bg-gray-100 dark:bg-white/5 rounded-lg">
-            <p className="text-sm text-gray-700 dark:text-gray-300">
-              a = {a.toFixed(1)}, b = {b.toFixed(1)}, c = {c.toFixed(1)}
-            </p>
-            <p className="text-sm text-gray-700 dark:text-gray-300">
-              a² = {(a*a).toFixed(1)}, b² = {(b*b).toFixed(1)}, c² = {(c*c).toFixed(1)}
-            </p>
-            <p className="text-sm font-semibold text-gray-900 dark:text-white">
-              a² + b² = {(a*a + b*b).toFixed(1)} {Math.abs((a*a + b*b) - (c*c)) < 0.01 ? '✓' : '✗'}
-            </p>
-          </div>
-          <Plot
-            data={[
-              {
-                x: triangleX,
-                y: triangleY,
-                type: 'scatter',
-                mode: 'lines',
-                name: 'Right Triangle',
-                line: { color: '#2563eb', width: 3 },
-                fill: 'toself',
-                fillcolor: 'rgba(37, 99, 235, 0.1)'
-              },
-              {
-                x: squareAX,
-                y: squareAY,
-                type: 'scatter',
-                mode: 'lines',
-                name: `Square on a (${(a*a).toFixed(1)})`,
-                line: { color: '#dc2626', width: 2 },
-                fill: 'toself',
-                fillcolor: 'rgba(220, 38, 38, 0.2)'
-              },
-              {
-                x: squareBX,
-                y: squareBY,
-                type: 'scatter',
-                mode: 'lines',
-                name: `Square on b (${(b*b).toFixed(1)})`,
-                line: { color: '#16a34a', width: 2 },
-                fill: 'toself',
-                fillcolor: 'rgba(22, 163, 74, 0.2)'
-              },
-              {
-                x: squareCX,
-                y: squareCY,
-                type: 'scatter',
-                mode: 'lines',
-                name: `Square on c (${(c*c).toFixed(1)})`,
-                line: { color: '#ca8a04', width: 2 },
-                fill: 'toself',
-                fillcolor: 'rgba(202, 138, 4, 0.2)'
-              }
-            ]}
-            layout={{
-              title: visualization.plotConfig.title,
-              xaxis: { title: visualization.plotConfig.xAxisLabel, scaleanchor: 'y', scaleratio: 1 },
-              yaxis: { title: visualization.plotConfig.yAxisLabel },
-              showlegend: true,
-              paper_bgcolor: 'rgba(0,0,0,0)',
-              plot_bgcolor: 'rgba(0,0,0,0)',
-              font: { color: '#374151' },
-              margin: { t: 50, r: 50, b: 50, l: 50 }
-            }}
-            config={{ responsive: true, displayModeBar: false }}
-            style={{ width: '100%', height: '500px' }}
-          />
-        </div>
-      );
-    } else {
-      // For c² chunk, show area comparison
-      return (
-        <div className="w-full">
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            {visualization.parameters.map(param => (
-              <div key={param.name}>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {param.label}: {(parameters[param.name] || param.default).toFixed(1)}
-                </label>
-                <input
-                  type="range"
-                  min={param.min}
-                  max={param.max}
-                  step={param.step}
-                  value={parameters[param.name] || param.default}
-                  onChange={(e) => onParameterChange(param.name, parseFloat(e.target.value))}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
-                />
-              </div>
-            ))}
-          </div>
-          <Plot
-            data={[
-              {
-                x: ['a²', 'b²', 'c²'],
-                y: [a*a, b*b, c*c],
-                type: 'bar',
-                name: 'Areas',
-                marker: { 
-                  color: ['#dc2626', '#16a34a', '#ca8a04'],
-                  opacity: 0.8
-                }
-              },
-              {
-                x: ['a² + b²'],
-                y: [a*a + b*b],
-                type: 'bar',
-                name: 'Sum of legs',
-                marker: { color: '#2563eb', opacity: 0.6 }
-              }
-            ]}
-            layout={{
-              title: 'Pythagorean Theorem Verification: Areas',
-              xaxis: { title: 'Terms' },
-              yaxis: { title: 'Area (square units)' },
-              showlegend: true,
-              paper_bgcolor: 'rgba(0,0,0,0)',
-              plot_bgcolor: 'rgba(0,0,0,0)',
-              font: { color: '#374151' },
-              margin: { t: 50, r: 50, b: 50, l: 50 }
-            }}
-            config={{ responsive: true, displayModeBar: false }}
-            style={{ width: '100%', height: '400px' }}
-          />
-        </div>
-      );
-    }
-  }
-
-  return null;
+      {/* Plotly visualization */}
+      <Plot
+        data={generatePlotData()}
+        layout={buildLayout()}
+        config={buildConfig()}
+        style={{ width: '100%', height: visualization.layout?.height || '400px' }}
+      />
+    </div>
+  );
 }

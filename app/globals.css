@@ -78,6 +78,90 @@
     -webkit-backdrop-filter: blur(12px);
   }
 
+  /* Custom Scrollbars - Light Theme */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    backdrop-filter: blur(4px);
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, rgba(156, 163, 175, 0.4), rgba(107, 114, 128, 0.6));
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(8px);
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, rgba(156, 163, 175, 0.6), rgba(107, 114, 128, 0.8));
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  /* Custom Scrollbars - Dark Theme */
+  .dark .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    backdrop-filter: blur(4px);
+  }
+
+  .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.2));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.3));
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  /* Thin Scrollbars for smaller areas */
+  .custom-scrollbar-thin::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  .custom-scrollbar-thin::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+  }
+
+  .custom-scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgba(156, 163, 175, 0.3);
+    border-radius: 6px;
+    backdrop-filter: blur(4px);
+  }
+
+  .custom-scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: rgba(156, 163, 175, 0.5);
+  }
+
+  .dark .custom-scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  .dark .custom-scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
+  }
+
+  /* Firefox scrollbar support */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(156, 163, 175, 0.4) rgba(255, 255, 255, 0.1);
+  }
+
+  .dark .custom-scrollbar {
+    scrollbar-color: rgba(255, 255, 255, 0.2) rgba(0, 0, 0, 0.2);
+  }
+
   .glass-scroll::-webkit-scrollbar {
     width: 6px;
   }
@@ -94,5 +178,103 @@
   .math-symbol {
     font-family: 'Playfair Display', serif;
     font-style: italic;
+  }
+
+  /* Modal Animations */
+  .modal-backdrop-enter {
+    opacity: 0;
+  }
+
+  .modal-backdrop-enter-active {
+    opacity: 1;
+    transition: opacity 300ms ease-out;
+  }
+
+  .modal-backdrop-exit {
+    opacity: 1;
+  }
+
+  .modal-backdrop-exit-active {
+    opacity: 0;
+    transition: opacity 200ms ease-in;
+  }
+
+  .modal-content-enter {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+
+  .modal-content-enter-active {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    transition: opacity 300ms ease-out, transform 300ms ease-out;
+  }
+
+  .modal-content-exit {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+
+  .modal-content-exit-active {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+    transition: opacity 200ms ease-in, transform 200ms ease-in;
+  }
+
+  /* Smooth modal animations with CSS */
+  .modal-backdrop {
+    animation: fadeIn 300ms ease-out;
+  }
+
+  .modal-backdrop.closing {
+    animation: fadeOut 200ms ease-in forwards;
+  }
+
+  .modal-content {
+    animation: slideIn 300ms ease-out;
+  }
+
+  .modal-content.closing {
+    animation: slideOut 200ms ease-in forwards;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes fadeOut {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95) translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  @keyframes slideOut {
+    from {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: scale(0.95) translateY(-10px);
+    }
   }
 }

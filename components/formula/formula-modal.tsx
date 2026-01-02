@@ -2,6 +2,8 @@ import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FormulaChunk } from '@/app/formula/data';
 import { FormulaVisualization } from './formula-visualization';
+import { LaTeXRenderer } from '@/components/latex-renderer';
+import { useState, useEffect } from 'react';
 
 interface FormulaModalProps {
   isOpen: boolean;
@@ -22,60 +24,55 @@ export function FormulaModal({
   onBackdropClick, 
   modalRef 
 }: FormulaModalProps) {
-  if (!isOpen || !selectedChunk) return null;
+  const [isClosing, setIsClosing] = useState(false);
+  const [shouldRender, setShouldRender] = useState(false);
 
-  const renderModalFormula = (chunk: FormulaChunk) => {
-    const { renderComponent } = chunk;
-    
-    if (renderComponent.type === 'fraction') {
-      return (
-        <div className="flex items-center justify-center text-4xl font-light text-gray-900 dark:text-white mb-4">
-          <div className="flex flex-col items-center">
-            <div className="text-3xl mb-2">{renderComponent.numerator}</div>
-            <div className="w-24 h-0.5 bg-current mb-2"></div>
-            <div className="text-2xl">{renderComponent.denominator}</div>
-          </div>
-        </div>
-      );
+  useEffect(() => {
+    if (isOpen) {
+      setShouldRender(true);
+      setIsClosing(false);
+    } else if (shouldRender) {
+      setIsClosing(true);
+      // Wait for animation to complete before unmounting
+      const timer = setTimeout(() => {
+        setShouldRender(false);
+        setIsClosing(false);
+      }, 200); // Match the exit animation duration
+      return () => clearTimeout(timer);
     }
-    
-    if (renderComponent.type === 'exponential') {
-      return (
-        <div className="flex items-center justify-center text-4xl font-light text-gray-900 dark:text-white mb-4">
-          <div className="flex items-start">
-            <span className="text-4xl">{renderComponent.base}</span>
-            {renderComponent.exponent?.numerator && (
-              <div className="flex flex-col items-center ml-2 -mt-1">
-                <div className="text-2xl">{renderComponent.exponent.numerator}</div>
-                {renderComponent.exponent.denominator && (
-                  <>
-                    <div className="w-20 h-0.5 bg-current mb-1"></div>
-                    <div className="text-lg">{renderComponent.exponent.denominator}</div>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      );
-    }
-    
-    return null;
+  }, [isOpen, shouldRender]);
+
+  const handleClose = () => {
+    setIsClosing(true);
+    // Wait for animation to complete before calling onClose
+    setTimeout(() => {
+      onClose();
+    }, 200);
   };
+
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
+      handleClose();
+    }
+  };
+
+  if (!shouldRender || !selectedChunk) return null;
 
   return (
     <div 
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-      onClick={onBackdropClick}
+      className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 modal-backdrop ${isClosing ? 'closing' : ''}`}
+      onClick={handleBackdropClick}
     >
       <div 
         ref={modalRef}
-        className="glass-panel bg-white/90 dark:bg-black/90 border border-gray-200 dark:border-white/20 rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+        className={`glass-panel bg-white/90 dark:bg-black/90 border border-gray-200 dark:border-white/20 rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl modal-content ${isClosing ? 'closing' : ''}`}
       >
-        <div className="flex items-start justify-between mb-6">
+        <div className="flex items-start justify-between mb-6 pt-3">
           <div className="flex-1">
             <div className="text-center mb-4">
-              {renderModalFormula(selectedChunk)}
+              <div className="flex items-center justify-center text-4xl font-light text-gray-900 dark:text-white mb-4">
+                <LaTeXRenderer className="text-4xl">{selectedChunk.chunk}</LaTeXRenderer>
+              </div>
             </div>
             <h2 className="text-2xl font-display font-semibold text-gray-900 dark:text-white mb-2 text-center">
               {selectedChunk.displayName}
@@ -87,8 +84,8 @@ export function FormulaModal({
           <Button
             variant="ghost"
             size="icon"
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-lg hover:bg-gray-200 dark:hover:bg-white/10 ml-4"
+            onClick={handleClose}
+            className="text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-lg hover:bg-gray-200 dark:hover:bg-white/10 ml-4 transition-colors duration-200"
           >
             <X className="h-5 w-5" />
           </Button>

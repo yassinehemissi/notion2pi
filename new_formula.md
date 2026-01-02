@@ -1,10 +1,22 @@
 # Adding New Formulas to Notion2Pi
 
-This guide explains how to add new mathematical formulas to the Notion2Pi dynamic formula system.
+This guide explains how to add new mathematical formulas to the Notion2Pi **truly dynamic** formula system with **LaTeX rendering**.
 
 ## Overview
 
-The formula system is completely data-driven, meaning you only need to provide the formula data structure - no new components or pages are required. All formulas use the same rendering engine and interactive components.
+The formula system is completely data-driven with **zero hardcoded conditionals** and uses **KaTeX for beautiful mathematical rendering**. All formulas use the same universal rendering engine and visualization system. You only need to provide:
+
+1. **Formula data structure** - Mathematical content and metadata
+2. **LaTeX expressions** - Proper mathematical notation using LaTeX syntax
+3. **Expression-based visualizations** - Mathematical expressions that get evaluated dynamically
+
+## Key Features
+
+- **🎨 LaTeX Rendering**: Beautiful mathematical notation using KaTeX
+- **🚫 No conditionals**: The system has no `if/else` statements for different formula types
+- **📊 Expression-based**: All visualizations use mathematical expressions that get evaluated
+- **🔄 Universal rendering**: One renderer handles all formula types through LaTeX
+- **🧩 Modular chunks**: Each formula part is independently defined and rendered
 
 ## File Structure
 
@@ -15,12 +27,14 @@ app/formula/
 │   └── page.tsx            # Dynamic page component (no changes needed)
 └── page.tsx                # Redirect page (no changes needed)
 
-components/formula/
-├── formula-header.tsx      # Header component
-├── formula-renderer.tsx    # Formula display component
-├── formula-properties.tsx  # Properties panel component
-├── formula-visualization.tsx # Plotly visualization component
-└── formula-modal.tsx       # Modal component
+components/
+├── latex-renderer.tsx      # LaTeX rendering components
+└── formula/
+    ├── formula-header.tsx      # Header component
+    ├── formula-renderer.tsx    # Universal LaTeX renderer
+    ├── formula-properties.tsx  # Properties panel component
+    ├── formula-visualization.tsx # Expression-based visualization engine
+    └── formula-modal.tsx       # Modal component with LaTeX
 ```
 
 ## Step-by-Step Guide
@@ -33,10 +47,12 @@ Add your formula data to `app/formula/data.ts`. Here's the complete structure:
 export const yourFormulaData: FormulaData = {
   meta: {
     formula: "Your Formula Name",
-    latex: "LaTeX representation", // e.g., "E = mc^2"
-    slug: "your-formula-slug",     // URL slug (kebab-case)
-    category: "Physics"            // Category for organization
+    latex: "E = mc^2",              // Full LaTeX representation
+    slug: "your-formula-slug",      // URL slug (kebab-case)
+    category: "Physics"             // Category for organization
   },
+  
+  operators: ["="], // LaTeX operators between chunks (e.g., ["+", "=", "\\times"])
   
   fullFormula7Vector: {
     Role: "What the formula represents",
@@ -51,20 +67,9 @@ export const yourFormulaData: FormulaData = {
   
   subFormulas: [
     {
-      chunk: "LaTeX chunk",           // e.g., "E" or "mc^2"
-      displayName: "Human readable",  // e.g., "Energy" or "mc²"
-      renderComponent: {
-        type: 'fraction' | 'exponential' | 'custom',
-        // For fractions:
-        numerator?: "top part",
-        denominator?: "bottom part",
-        // For exponentials:
-        base?: "base",
-        exponent?: {
-          numerator: "exponent top",
-          denominator: "exponent bottom" // optional
-        }
-      },
+      chunk: "E",                   // LaTeX for this chunk
+      displayName: "Energy",       // Human readable name
+      
       "7Vector": {
         Role: "Component's role",
         Domain: "Component's domain",
@@ -75,8 +80,12 @@ export const yourFormulaData: FormulaData = {
         Limits: "Limiting behavior",
         narrative: "2-3 sentence explanation of this component's role and behavior."
       },
+      
       visualization: {
-        type: 'normalizing_constant' | 'exponential_decay' | 'custom',
+        title: 'Plot Title',
+        xAxisLabel: 'X Axis',
+        yAxisLabel: 'Y Axis',
+        xRange: [minX, maxX],          // Plot range
         parameters: [
           {
             name: 'parameterName',
@@ -87,19 +96,15 @@ export const yourFormulaData: FormulaData = {
             label: 'Parameter Label'
           }
         ],
-        plotConfig: {
-          title: 'Plot Title',
-          xAxisLabel: 'X Axis',
-          yAxisLabel: 'Y Axis',
-          traces: [
-            {
-              name: 'Trace Name',
-              color: '#2563eb',
-              type: 'line' | 'marker' | 'both',
-              style?: 'solid' | 'dash' | 'dot'
-            }
-          ]
-        }
+        traces: [                      // Mathematical expressions to plot
+          {
+            name: 'Trace Name',
+            color: '#2563eb',
+            type: 'line' | 'marker' | 'both',
+            style?: 'solid' | 'dash' | 'dot',
+            expression: 'x^2 + 2*x + 1'  // Mathematical expression
+          }
+        ]
       }
     }
     // Add more sub-formulas as needed
@@ -119,150 +124,197 @@ export const formulaRegistry: Record<string, FormulaData> = {
 };
 ```
 
-### 3. Implement Custom Visualization (if needed)
+## LaTeX Syntax Guide
 
-If you're using `visualization.type: 'custom'`, you'll need to add the visualization logic to `components/formula/formula-visualization.tsx`:
-
-```typescript
-if (visualization.type === 'custom') {
-  // Your custom visualization logic here
-  // Access parameters via: parameters.parameterName
-  // Return JSX with Plotly Plot component
-  
-  return (
-    <div className="w-full">
-      {/* Parameter controls */}
-      {visualization.parameters.map(param => (
-        <div key={param.name} className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            {param.label}: {(parameters[param.name] || param.default).toFixed(1)}
-          </label>
-          <input
-            type="range"
-            min={param.min}
-            max={param.max}
-            step={param.step}
-            value={parameters[param.name] || param.default}
-            onChange={(e) => onParameterChange(param.name, parseFloat(e.target.value))}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
-          />
-        </div>
-      ))}
-      
-      {/* Your Plotly visualization */}
-      <Plot
-        data={[
-          // Your plot data
-        ]}
-        layout={{
-          title: visualization.plotConfig.title,
-          // Your layout config
-        }}
-        config={{ responsive: true, displayModeBar: false }}
-        style={{ width: '100%', height: '400px' }}
-      />
-    </div>
-  );
-}
+### Basic Elements
+```latex
+x^2                    # Superscript: x²
+x_i                    # Subscript: xᵢ
+\frac{a}{b}           # Fraction: a/b
+\sqrt{x}              # Square root: √x
+\sqrt[n]{x}           # nth root: ⁿ√x
 ```
 
-## Component Types
+### Greek Letters
+```latex
+\alpha, \beta, \gamma  # α, β, γ
+\mu, \sigma, \pi      # μ, σ, π
+\theta, \phi, \psi    # θ, φ, ψ
+```
 
-### Render Component Types
+### Mathematical Functions
+```latex
+\sin x, \cos x, \tan x    # sin x, cos x, tan x
+\log x, \ln x             # log x, ln x
+\exp(x)                   # exp(x)
+\lim_{x \to \infty}       # lim as x→∞
+```
 
-1. **fraction**: For fractions like `1/2π`
-   ```typescript
-   renderComponent: {
-     type: 'fraction',
-     numerator: '1',
-     denominator: '2π'
-   }
-   ```
+### Operators and Symbols
+```latex
+\times                # ×
+\cdot                 # ·
+\pm                   # ±
+\neq                  # ≠
+\leq, \geq           # ≤, ≥
+\infty               # ∞
+\sum_{i=1}^n         # Σ from i=1 to n
+\int_a^b             # ∫ from a to b
+```
 
-2. **exponential**: For exponentials like `e^x` or `x^2`
-   ```typescript
-   renderComponent: {
-     type: 'exponential',
-     base: 'e',
-     exponent: {
-       numerator: 'x',
-       denominator: '' // optional
-     }
-   }
-   ```
-
-### Visualization Types
-
-1. **normalizing_constant**: For parameters that normalize distributions
-2. **exponential_decay**: For exponential functions with parameters
-3. **custom**: For completely custom visualizations (requires implementation)
-
-## Formula Rendering Logic
-
-The formula renderer automatically handles operators between chunks:
-- For most formulas: uses `+` between chunks
-- For equations (like Pythagorean theorem): uses `=` before the last chunk
-- Custom logic can be added in `FormulaRenderer` component
-
-## Examples
-
-### Simple Linear Formula: F = ma
+## Complete Example: Quadratic Formula
 
 ```typescript
-export const newtonSecondLawData: FormulaData = {
+export const quadraticFormulaData: FormulaData = {
   meta: {
-    formula: "Newton's Second Law",
-    latex: "F = ma",
-    slug: "newton-second-law",
-    category: "Physics"
+    formula: "Quadratic Formula",
+    latex: "x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}",
+    slug: "quadratic-formula",
+    category: "Algebra"
   },
+  
+  operators: ["="], // Just equals sign
+  
   fullFormula7Vector: {
-    Role: "Force relationship",
-    Domain: "ℝ → ℝ",
-    Binding: "F force, m mass, a acceleration",
-    Variance: "Linear in both m and a",
-    Geometric: "Vector relationship",
-    Invariant: "Proportionality constant",
-    Limits: "m→0 or a→0 → F→0",
-    narrative: "Newton's second law establishes the fundamental relationship between force, mass, and acceleration. It states that the force acting on an object is equal to its mass times its acceleration, forming the cornerstone of classical mechanics."
+    Role: "Solves quadratic equations",
+    Domain: "ℝ³ → ℂ²",
+    Binding: "a,b,c coefficients, x solutions",
+    Variance: "Discriminant determines solution type",
+    Geometric: "Parabola x-intercepts",
+    Invariant: "Two solutions (counting multiplicity)",
+    Limits: "a→0 becomes linear",
+    narrative: "The quadratic formula provides the exact solutions to any quadratic equation ax² + bx + c = 0. It reveals the fundamental relationship between a parabola's coefficients and its x-intercepts, with the discriminant determining whether solutions are real or complex."
   },
+  
   subFormulas: [
     {
-      chunk: "F",
-      displayName: "F",
-      renderComponent: {
-        type: 'exponential',
-        base: 'F',
-        exponent: { numerator: '', denominator: '' }
-      },
+      chunk: "x",
+      displayName: "Solution",
       "7Vector": {
-        Role: "Applied force",
-        Domain: "ℝ",
-        Binding: "F is force vector",
-        Variance: "Linear with acceleration",
-        Geometric: "Vector quantity",
-        Invariant: "Direction with acceleration",
-        Limits: "F→0 when a→0",
-        narrative: "Force represents the push or pull acting on an object. It's a vector quantity that determines how the object's motion will change over time."
+        Role: "Solution variable",
+        Domain: "ℂ",
+        Binding: "x represents the roots",
+        Variance: "Changes with coefficients",
+        Geometric: "Parabola x-intercepts",
+        Invariant: "Always two values",
+        Limits: "Real when b²≥4ac",
+        narrative: "The variable x represents the solutions to the quadratic equation. These are the points where the parabola crosses the x-axis, revealing the fundamental zeros of the quadratic function."
       },
       visualization: {
-        type: 'custom',
+        title: "Quadratic Function and Its Roots",
+        xAxisLabel: "x",
+        yAxisLabel: "f(x) = ax² + bx + c",
+        xRange: [-10, 10],
         parameters: [
-          { name: 'm', min: 0.1, max: 10, step: 0.1, default: 1, label: 'Mass (kg)' },
-          { name: 'a', min: 0, max: 20, step: 0.1, default: 10, label: 'Acceleration (m/s²)' }
+          { name: "a", min: -2, max: 2, step: 0.1, default: 1, label: "a (coefficient)" },
+          { name: "b", min: -5, max: 5, step: 0.1, default: 0, label: "b (coefficient)" },
+          { name: "c", min: -5, max: 5, step: 0.1, default: -4, label: "c (coefficient)" }
         ],
-        plotConfig: {
-          title: 'Force vs Mass and Acceleration',
-          xAxisLabel: 'Parameter',
-          yAxisLabel: 'Force (N)',
-          traces: [
-            { name: 'F = ma', color: '#2563eb', type: 'line' }
-          ]
-        }
+        traces: [
+          {
+            name: "f(x) = ax² + bx + c",
+            color: "#2563eb",
+            type: "line",
+            expression: "a*x^2 + b*x + c"
+          },
+          {
+            name: "x-axis",
+            color: "#6b7280",
+            type: "line",
+            expression: "0"
+          }
+        ]
+      }
+    },
+    {
+      chunk: "\\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}",
+      displayName: "Quadratic Formula",
+      "7Vector": {
+        Role: "Solution formula",
+        Domain: "ℝ³ → ℂ²",
+        Binding: "Takes coefficients, gives roots",
+        Variance: "Discriminant controls solution type",
+        Geometric: "Distance from vertex to roots",
+        Invariant: "Symmetric about axis of symmetry",
+        Limits: "Real solutions when b²≥4ac",
+        narrative: "This expression encapsulates the complete solution method for quadratic equations. The ± symbol indicates two solutions, while the discriminant b²-4ac determines whether they're real or complex, providing deep insight into the parabola's behavior."
+      },
+      visualization: {
+        title: "Discriminant Analysis",
+        xAxisLabel: "Discriminant (b²-4ac)",
+        yAxisLabel: "Value",
+        xRange: [-10, 10],
+        parameters: [
+          { name: "a", min: -2, max: 2, step: 0.1, default: 1, label: "a" },
+          { name: "b", min: -5, max: 5, step: 0.1, default: 0, label: "b" },
+          { name: "c", min: -5, max: 5, step: 0.1, default: -4, label: "c" }
+        ],
+        traces: [
+          {
+            name: "Discriminant",
+            color: "#dc2626",
+            type: "marker",
+            expression: "b^2 - 4*a*c"
+          }
+        ]
       }
     }
   ]
 };
+```
+
+## LaTeX Operators
+
+Common operators you can use between formula chunks:
+
+```typescript
+operators: ["+"]           # Addition: +
+operators: ["-"]           # Subtraction: -
+operators: ["\\times"]     # Multiplication: ×
+operators: ["\\cdot"]      # Dot product: ·
+operators: ["="]           # Equals: =
+operators: ["\\neq"]       # Not equals: ≠
+operators: ["\\leq"]       # Less than or equal: ≤
+operators: ["\\geq"]       # Greater than or equal: ≥
+operators: ["\\pm"]        # Plus-minus: ±
+operators: ["\\to"]        # Arrow: →
+operators: ["\\Rightarrow"] # Implies: ⇒
+
+# Multiple operators for complex formulas
+operators: ["+", "="]      # For: a² + b² = c²
+operators: ["\\times", "="] # For: force × distance = work
+```
+
+## Expression System
+
+All visualizations use mathematical expressions that get evaluated dynamically:
+
+### Supported Functions
+- `sqrt(x)` - Square root
+- `exp(x)` - Exponential (e^x)
+- `cos(x)`, `sin(x)` - Trigonometric functions
+- `pi` - Pi constant
+- `^` - Exponentiation (converted to `**`)
+- Standard operators: `+`, `-`, `*`, `/`, `(`, `)`
+
+### Variable Substitution
+- `x` - Independent variable (automatically generated range)
+- Parameter names - Replaced with current slider values
+- Example: `"a^2 + b^2"` with parameters `a=3, b=4` becomes `9 + 16`
+
+### Expression Examples
+```typescript
+// Linear function
+expression: "2*x + 1"
+
+// Quadratic with parameters
+expression: "a*x^2 + b*x + c"
+
+// Normal distribution
+expression: "(1/(sigma*sqrt(2*pi)))*exp(-((x-mu)^2)/(2*sigma^2))"
+
+// Trigonometric
+expression: "sin(2*pi*x)"
 ```
 
 ## Testing Your Formula
@@ -271,58 +323,70 @@ export const newtonSecondLawData: FormulaData = {
 2. Register it in the `formulaRegistry`
 3. Navigate to `/formula/your-formula-slug`
 4. Test all interactive elements:
-   - Click on formula chunks
+   - Click on formula chunks (should render as LaTeX)
    - Adjust parameters in the modal
-   - Verify visualizations work correctly
+   - Verify expressions evaluate correctly
    - Check 7-vector properties display properly
 
 ## Best Practices
 
-1. **Meaningful Slugs**: Use descriptive, URL-friendly slugs
-2. **Complete 7-Vectors**: Fill out all seven properties for each component
-3. **Engaging Narratives**: Write 2-3 sentences that explain significance
-4. **Appropriate Parameters**: Choose parameter ranges that show interesting behavior
-5. **Clear Visualizations**: Make sure plots clearly demonstrate the mathematical concepts
-6. **Consistent Styling**: Follow the existing color scheme and styling patterns
+1. **🎯 Proper LaTeX**: Use correct LaTeX syntax for mathematical notation
+2. **📊 Meaningful Expressions**: Use clear mathematical expressions that demonstrate the concept
+3. **📏 Appropriate Ranges**: Choose xRange and parameter ranges that show interesting behavior
+4. **📝 Complete 7-Vectors**: Fill out all seven properties for each component
+5. **📖 Engaging Narratives**: Write 2-3 sentences that explain significance
+6. **🎨 Consistent Styling**: Follow the existing color scheme and styling patterns
+7. **✅ Test LaTeX**: Verify your LaTeX renders correctly in the browser
+
+## Advanced LaTeX Examples
+
+### Complex Fractions
+```latex
+\\frac{\\frac{a}{b}}{\\frac{c}{d}}    # (a/b)/(c/d)
+```
+
+### Matrices
+```latex
+\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}    # 2x2 matrix
+```
+
+### Integrals and Sums
+```latex
+\\int_{-\\infty}^{\\infty} e^{-x^2} dx    # Gaussian integral
+\\sum_{n=1}^{\\infty} \\frac{1}{n^2}      # Basel problem
+```
+
+### Chemical Formulas
+```latex
+\\text{H}_2\\text{O}    # Water molecule
+```
+
+## System Architecture
+
+The new LaTeX-based system eliminates all conditionals through:
+
+1. **🎨 LaTeX Renderer**: Universal mathematical notation rendering
+2. **🔄 Universal Components**: `ClickableLaTeX` handles all formula chunks
+3. **📊 Expression Engine**: `FormulaVisualization` evaluates mathematical expressions dynamically
+4. **📋 Data-Driven Operators**: Formula operators come from the `operators` array
+5. **🧩 Modular Chunks**: Each chunk is independently defined with LaTeX
+
+This approach makes the system truly extensible while providing beautiful mathematical rendering - adding new formulas requires only data, never code changes.
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Formula not found**: Check that the slug matches exactly in the registry
-2. **Visualization not working**: Ensure all required parameters are defined
-3. **Rendering issues**: Verify the `renderComponent` type and properties are correct
-4. **TypeScript errors**: Make sure all required fields are provided in the data structure
+1. **LaTeX not rendering**: Check LaTeX syntax and escape backslashes properly
+2. **Expression errors**: Check mathematical syntax and function names
+3. **Parameter not found**: Ensure parameter names match between `parameters` and `expression`
+4. **Operators not showing**: Verify LaTeX operator syntax (use `\\times` not `×`)
 
-### Getting Help
+### LaTeX Debugging
 
-If you encounter issues:
-1. Check the existing formulas (Normal Distribution, Pythagorean Theorem) as examples
-2. Verify your data structure matches the TypeScript interfaces
-3. Test with simple visualizations first, then add complexity
-4. Use browser developer tools to debug any runtime errors
+- Test LaTeX syntax in an online LaTeX editor first
+- Remember to escape backslashes: `\\frac` not `\frac`
+- Use proper grouping with braces: `{...}`
+- Check for matching braces and parentheses
 
-## Advanced Features
-
-### Custom Formula Operators
-
-To add custom operators between formula chunks, modify the `FormulaRenderer` component:
-
-```typescript
-// In FormulaRenderer component
-{index < formulaData.subFormulas.length - 1 && (
-  <span className="text-4xl mx-2">
-    {formulaData.meta.slug === 'your-formula' ? ' → ' : ' + '}
-  </span>
-)}
-```
-
-### Complex Visualizations
-
-For advanced visualizations, you can:
-1. Add multiple Plot components
-2. Use different chart types (3D, contour, etc.)
-3. Implement interactive animations
-4. Add custom controls beyond sliders
-
-The system is designed to be highly extensible while maintaining consistency across all formulas.
+The system now provides beautiful, professional mathematical rendering with complete flexibility! 🎉
