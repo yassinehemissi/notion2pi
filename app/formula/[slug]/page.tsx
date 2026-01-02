@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { getFormulaData, FormulaData, FormulaChunk } from '../data';
+import { getFormulaData, FormulaChunk } from '../data';
 import { FloatingFormulas } from '@/components/floating-formulas';
 import { FormulaHeader } from '@/components/formula/formula-header';
 import { FormulaRenderer } from '@/components/formula/formula-renderer';
@@ -19,27 +19,10 @@ export default function DynamicFormulaPage({}: DynamicFormulaPageProps) {
   
   const [selectedChunk, setSelectedChunk] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [parameters, setParameters] = useState<Record<string, number>>({});
   const modalRef = useRef<HTMLDivElement>(null);
 
   // Get formula data
   const formulaData = getFormulaData(slug);
-
-  // Initialize parameters
-  useEffect(() => {
-    if (formulaData) {
-      const initialParams: Record<string, number> = {};
-      formulaData.subFormulas.forEach(subFormula => {
-        // Only process parameters if visualization exists
-        if (subFormula.visualization) {
-          subFormula.visualization.parameters.forEach(param => {
-            initialParams[param.name] = param.default;
-          });
-        }
-      });
-      setParameters(initialParams);
-    }
-  }, [formulaData]);
 
   // Close modal on escape key
   useEffect(() => {
@@ -93,19 +76,8 @@ export default function DynamicFormulaPage({}: DynamicFormulaPageProps) {
     setSelectedChunk(null);
   };
 
-  // Close modal on backdrop click
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
-      closeModal();
-    }
-  };
-
   const getSelectedSubFormula = (): FormulaChunk | null => {
     return formulaData.subFormulas.find(sf => sf.chunk === selectedChunk) || null;
-  };
-
-  const updateParameter = (paramName: string, value: number) => {
-    setParameters(prev => ({ ...prev, [paramName]: value }));
   };
 
   return (
@@ -128,10 +100,7 @@ export default function DynamicFormulaPage({}: DynamicFormulaPageProps) {
       <FormulaModal
         isOpen={isModalOpen}
         selectedChunk={getSelectedSubFormula()}
-        parameters={parameters}
         onClose={closeModal}
-        onParameterChange={updateParameter}
-        onBackdropClick={handleBackdropClick}
         modalRef={modalRef}
       />
 

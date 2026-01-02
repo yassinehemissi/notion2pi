@@ -4,19 +4,19 @@ This guide explains how to add new mathematical formulas to the Notion2Pi **trul
 
 ## Overview
 
-The formula system is completely data-driven with **zero hardcoded conditionals** and uses **KaTeX for beautiful mathematical rendering**. All formulas use the same universal rendering engine and visualization system. You only need to provide:
+The formula system is completely data-driven with **zero hardcoded conditionals** and uses **KaTeX for beautiful mathematical rendering**. All formulas use the same universal rendering engine. You only need to provide:
 
 1. **Formula data structure** - Mathematical content and metadata
 2. **LaTeX expressions** - Proper mathematical notation using LaTeX syntax
-3. **Expression-based visualizations** - Mathematical expressions that get evaluated dynamically
+3. **7-Vector properties** - Complete mathematical characterization for each component
 
 ## Key Features
 
 - **🎨 LaTeX Rendering**: Beautiful mathematical notation using KaTeX
 - **🚫 No conditionals**: The system has no `if/else` statements for different formula types
-- **📊 Expression-based**: All visualizations use mathematical expressions that get evaluated
 - **🔄 Universal rendering**: One renderer handles all formula types through LaTeX
 - **🧩 Modular chunks**: Each formula part is independently defined and rendered
+- **📊 Pure Mathematics**: Focus on mathematical properties without distracting visualizations
 
 ## File Structure
 
@@ -33,7 +33,6 @@ components/
     ├── formula-header.tsx      # Header component
     ├── formula-renderer.tsx    # Universal LaTeX renderer
     ├── formula-properties.tsx  # Properties panel component
-    ├── formula-visualization.tsx # Expression-based visualization engine
     └── formula-modal.tsx       # Modal component with LaTeX
 ```
 
@@ -79,32 +78,6 @@ export const yourFormulaData: FormulaData = {
         Invariant: "What's invariant",
         Limits: "Limiting behavior",
         narrative: "2-3 sentence explanation of this component's role and behavior."
-      },
-      
-      visualization: {
-        title: 'Plot Title',
-        xAxisLabel: 'X Axis',
-        yAxisLabel: 'Y Axis',
-        xRange: [minX, maxX],          // Plot range
-        parameters: [
-          {
-            name: 'parameterName',
-            min: 0,
-            max: 10,
-            step: 0.1,
-            default: 5,
-            label: 'Parameter Label'
-          }
-        ],
-        traces: [                      // Mathematical expressions to plot
-          {
-            name: 'Trace Name',
-            color: '#2563eb',
-            type: 'line' | 'marker' | 'both',
-            style?: 'solid' | 'dash' | 'dot',
-            expression: 'x^2 + 2*x + 1'  // Mathematical expression
-          }
-        ]
       }
     }
     // Add more sub-formulas as needed
@@ -199,31 +172,6 @@ export const quadraticFormulaData: FormulaData = {
         Invariant: "Always two values",
         Limits: "Real when b²≥4ac",
         narrative: "The variable x represents the solutions to the quadratic equation. These are the points where the parabola crosses the x-axis, revealing the fundamental zeros of the quadratic function."
-      },
-      visualization: {
-        title: "Quadratic Function and Its Roots",
-        xAxisLabel: "x",
-        yAxisLabel: "f(x) = ax² + bx + c",
-        xRange: [-10, 10],
-        parameters: [
-          { name: "a", min: -2, max: 2, step: 0.1, default: 1, label: "a (coefficient)" },
-          { name: "b", min: -5, max: 5, step: 0.1, default: 0, label: "b (coefficient)" },
-          { name: "c", min: -5, max: 5, step: 0.1, default: -4, label: "c (coefficient)" }
-        ],
-        traces: [
-          {
-            name: "f(x) = ax² + bx + c",
-            color: "#2563eb",
-            type: "line",
-            expression: "a*x^2 + b*x + c"
-          },
-          {
-            name: "x-axis",
-            color: "#6b7280",
-            type: "line",
-            expression: "0"
-          }
-        ]
       }
     },
     {
@@ -238,25 +186,6 @@ export const quadraticFormulaData: FormulaData = {
         Invariant: "Symmetric about axis of symmetry",
         Limits: "Real solutions when b²≥4ac",
         narrative: "This expression encapsulates the complete solution method for quadratic equations. The ± symbol indicates two solutions, while the discriminant b²-4ac determines whether they're real or complex, providing deep insight into the parabola's behavior."
-      },
-      visualization: {
-        title: "Discriminant Analysis",
-        xAxisLabel: "Discriminant (b²-4ac)",
-        yAxisLabel: "Value",
-        xRange: [-10, 10],
-        parameters: [
-          { name: "a", min: -2, max: 2, step: 0.1, default: 1, label: "a" },
-          { name: "b", min: -5, max: 5, step: 0.1, default: 0, label: "b" },
-          { name: "c", min: -5, max: 5, step: 0.1, default: -4, label: "c" }
-        ],
-        traces: [
-          {
-            name: "Discriminant",
-            color: "#dc2626",
-            type: "marker",
-            expression: "b^2 - 4*a*c"
-          }
-        ]
       }
     }
   ]
@@ -285,38 +214,6 @@ operators: ["+", "="]      # For: a² + b² = c²
 operators: ["\\times", "="] # For: force × distance = work
 ```
 
-## Expression System
-
-All visualizations use mathematical expressions that get evaluated dynamically:
-
-### Supported Functions
-- `sqrt(x)` - Square root
-- `exp(x)` - Exponential (e^x)
-- `cos(x)`, `sin(x)` - Trigonometric functions
-- `pi` - Pi constant
-- `^` - Exponentiation (converted to `**`)
-- Standard operators: `+`, `-`, `*`, `/`, `(`, `)`
-
-### Variable Substitution
-- `x` - Independent variable (automatically generated range)
-- Parameter names - Replaced with current slider values
-- Example: `"a^2 + b^2"` with parameters `a=3, b=4` becomes `9 + 16`
-
-### Expression Examples
-```typescript
-// Linear function
-expression: "2*x + 1"
-
-// Quadratic with parameters
-expression: "a*x^2 + b*x + c"
-
-// Normal distribution
-expression: "(1/(sigma*sqrt(2*pi)))*exp(-((x-mu)^2)/(2*sigma^2))"
-
-// Trigonometric
-expression: "sin(2*pi*x)"
-```
-
 ## Testing Your Formula
 
 1. Add your formula data to `data.ts`
@@ -324,52 +221,27 @@ expression: "sin(2*pi*x)"
 3. Navigate to `/formula/your-formula-slug`
 4. Test all interactive elements:
    - Click on formula chunks (should render as LaTeX)
-   - Adjust parameters in the modal
-   - Verify expressions evaluate correctly
-   - Check 7-vector properties display properly
+   - Verify 7-vector properties display properly
+   - Check modal functionality
 
 ## Best Practices
 
 1. **🎯 Proper LaTeX**: Use correct LaTeX syntax for mathematical notation
-2. **📊 Meaningful Expressions**: Use clear mathematical expressions that demonstrate the concept
-3. **📏 Appropriate Ranges**: Choose xRange and parameter ranges that show interesting behavior
-4. **📝 Complete 7-Vectors**: Fill out all seven properties for each component
-5. **📖 Engaging Narratives**: Write 2-3 sentences that explain significance
-6. **🎨 Consistent Styling**: Follow the existing color scheme and styling patterns
-7. **✅ Test LaTeX**: Verify your LaTeX renders correctly in the browser
-
-## Advanced LaTeX Examples
-
-### Complex Fractions
-```latex
-\\frac{\\frac{a}{b}}{\\frac{c}{d}}    # (a/b)/(c/d)
-```
-
-### Matrices
-```latex
-\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}    # 2x2 matrix
-```
-
-### Integrals and Sums
-```latex
-\\int_{-\\infty}^{\\infty} e^{-x^2} dx    # Gaussian integral
-\\sum_{n=1}^{\\infty} \\frac{1}{n^2}      # Basel problem
-```
-
-### Chemical Formulas
-```latex
-\\text{H}_2\\text{O}    # Water molecule
-```
+2. **📏 Complete 7-Vectors**: Fill out all seven properties for each component
+3. **📝 Engaging Narratives**: Write 2-3 sentences that explain significance
+4. **🎨 Consistent Styling**: Follow the existing color scheme and styling patterns
+5. **✅ Test LaTeX**: Verify your LaTeX renders correctly in the browser
+6. **🧮 Focus on Mathematics**: Emphasize the mathematical properties and relationships
 
 ## System Architecture
 
-The new LaTeX-based system eliminates all conditionals through:
+The LaTeX-based system eliminates all conditionals through:
 
 1. **🎨 LaTeX Renderer**: Universal mathematical notation rendering
 2. **🔄 Universal Components**: `ClickableLaTeX` handles all formula chunks
-3. **📊 Expression Engine**: `FormulaVisualization` evaluates mathematical expressions dynamically
-4. **📋 Data-Driven Operators**: Formula operators come from the `operators` array
-5. **🧩 Modular Chunks**: Each chunk is independently defined with LaTeX
+3. **📋 Data-Driven Operators**: Formula operators come from the `operators` array
+4. **🧩 Modular Chunks**: Each chunk is independently defined with LaTeX
+5. **📊 Pure Mathematics**: Focus on mathematical properties without distracting visualizations
 
 This approach makes the system truly extensible while providing beautiful mathematical rendering - adding new formulas requires only data, never code changes.
 
@@ -378,9 +250,8 @@ This approach makes the system truly extensible while providing beautiful mathem
 ### Common Issues
 
 1. **LaTeX not rendering**: Check LaTeX syntax and escape backslashes properly
-2. **Expression errors**: Check mathematical syntax and function names
-3. **Parameter not found**: Ensure parameter names match between `parameters` and `expression`
-4. **Operators not showing**: Verify LaTeX operator syntax (use `\\times` not `×`)
+2. **Operators not showing**: Verify LaTeX operator syntax (use `\\times` not `×`)
+3. **Modal not opening**: Ensure chunk LaTeX matches exactly between data and click handler
 
 ### LaTeX Debugging
 
@@ -389,4 +260,4 @@ This approach makes the system truly extensible while providing beautiful mathem
 - Use proper grouping with braces: `{...}`
 - Check for matching braces and parentheses
 
-The system now provides beautiful, professional mathematical rendering with complete flexibility! 🎉
+The system now provides beautiful, professional mathematical rendering with complete focus on mathematical understanding! 🎉

@@ -1,90 +1,6 @@
-// Simplified, truly dynamic types with full Plotly support
-export interface PlotTrace {
-  name: string;
-  color: string;
-  type: "scatter" | "bar" | "histogram" | "box" | "violin" | "heatmap" | "contour" | "surface" | "mesh3d" | "scatter3d" | "pie" | "sunburst" | "treemap" | "funnel" | "waterfall" | "indicator" | "table" | "candlestick" | "ohlc" | "sankey" | "parcats" | "parcoords" | "scattergeo" | "choropleth" | "scattermapbox" | "choroplethmapbox" | "densitymapbox" | "scatterpolar" | "scatterpolargl" | "barpolar" | "area";
-  mode?: "lines" | "markers" | "lines+markers" | "text" | "lines+text" | "markers+text" | "lines+markers+text";
-  style?: "solid" | "dash" | "dot" | "dashdot";
-  expression?: string; // Mathematical expression to evaluate (optional for custom data)
-  // Support for custom Plotly data
-  x?: number[] | string[];
-  y?: number[] | string[];
-  z?: number[][];
-  values?: number[];
-  labels?: string[];
-  text?: string[];
-  marker?: {
-    color?: string | string[] | number[];
-    size?: number | number[];
-    symbol?: string;
-    opacity?: number;
-    colorscale?: string;
-    showscale?: boolean;
-    colorbar?: any;
-  };
-  line?: {
-    color?: string;
-    width?: number;
-    dash?: string;
-    shape?: "linear" | "spline" | "hv" | "vh" | "hvh" | "vhv";
-  };
-  fill?: "none" | "tozeroy" | "tozerox" | "tonexty" | "tonextx" | "toself" | "tonext";
-  fillcolor?: string;
-  // Add any other Plotly trace properties
-  [key: string]: any;
-}
+// Removed PlotTrace interface - no longer needed
 
-export interface Parameter {
-  name: string;
-  min: number;
-  max: number;
-  step: number;
-  default: number;
-  label: string;
-}
-
-export interface VisualizationConfig {
-  title: string;
-  xAxisLabel: string;
-  yAxisLabel: string;
-  zAxisLabel?: string; // For 3D plots
-  xRange?: [number, number];
-  yRange?: [number, number];
-  zRange?: [number, number];
-  parameters: Parameter[];
-  traces: PlotTrace[];
-  // Full Plotly layout support
-  layout?: {
-    width?: number;
-    height?: number;
-    margin?: { t?: number; r?: number; b?: number; l?: number };
-    showlegend?: boolean;
-    legend?: any;
-    annotations?: any[];
-    shapes?: any[];
-    images?: any[];
-    scene?: { // For 3D plots
-      xaxis?: any;
-      yaxis?: any;
-      zaxis?: any;
-      camera?: any;
-    };
-    geo?: any; // For geographic plots
-    polar?: any; // For polar plots
-    coloraxis?: any;
-    colorscale?: any;
-    [key: string]: any;
-  };
-  // Plotly config options
-  config?: {
-    displayModeBar?: boolean;
-    displaylogo?: boolean;
-    modeBarButtonsToRemove?: string[];
-    modeBarButtonsToAdd?: any[];
-    responsive?: boolean;
-    [key: string]: any;
-  };
-}
+// Removed visualization interfaces - no longer needed
 
 export interface FormulaChunk {
   chunk: string; // LaTeX representation
@@ -99,7 +15,7 @@ export interface FormulaChunk {
     Limits: string;
     narrative: string;
   };
-  visualization?: VisualizationConfig; // Now optional!
+  // Removed visualization - no longer supported
 }
 
 export interface FormulaData {
@@ -123,42 +39,7 @@ export interface FormulaData {
   operators: string[]; // Operators between chunks (e.g., ["+", "="])
 }
 
-// Expression evaluator utility
-export function evaluateExpression(expression: string, parameters: Record<string, number>): number[] {
-  // Simple expression evaluator - can be extended for more complex expressions
-  const x = Array.from({ length: 200 }, (_, i) => -4 + (i * 8) / 199);
-  
-  return x.map(xi => {
-    let expr = expression;
-    
-    // Replace variables
-    expr = expr.replace(/\bx\b/g, xi.toString());
-    Object.entries(parameters).forEach(([key, value]) => {
-      expr = expr.replace(new RegExp(`\\b${key}\\b`, 'g'), value.toString());
-    });
-    
-    // Replace mathematical functions
-    expr = expr.replace(/sqrt\(([^)]+)\)/g, 'Math.sqrt($1)');
-    expr = expr.replace(/exp\(([^)]+)\)/g, 'Math.exp($1)');
-    expr = expr.replace(/cos\(([^)]+)\)/g, 'Math.cos($1)');
-    expr = expr.replace(/sin\(([^)]+)\)/g, 'Math.sin($1)');
-    expr = expr.replace(/\bpi\b/g, 'Math.PI');
-    expr = expr.replace(/\^/g, '**');
-    
-    try {
-      return eval(expr);
-    } catch (error) {
-      console.warn(`Expression evaluation error: ${expr}`, error);
-      return 0;
-    }
-  });
-}
-
-export function getXValues(xRange: [number, number], points: number = 200): number[] {
-  return Array.from({ length: points }, (_, i) => 
-    xRange[0] + (i * (xRange[1] - xRange[0])) / (points - 1)
-  );
-}
+// Removed expression evaluation utilities - no longer needed
 
 export const normalDistributionData: FormulaData = {
   meta: {
@@ -192,39 +73,6 @@ export const normalDistributionData: FormulaData = {
         Limits: "σ→0 → ∞; σ→∞ → 0",
         narrative: "This normalizing constant acts as the gatekeeper of probability, ensuring the bell curve maintains unit area regardless of its width. As σ shrinks, this term grows larger to compensate for the narrowing curve, while expanding σ reduces the peak height. It's the mathematical embodiment of conservation - what's lost in width is gained in height.",
       },
-      visualization: {
-        title: "Normalizing Constant vs Standard Deviation",
-        xAxisLabel: "σ (Standard Deviation)",
-        yAxisLabel: "1/(σ√(2π))",
-        xRange: [0.1, 3],
-        parameters: [
-          {
-            name: "sigma",
-            min: 0.1,
-            max: 3,
-            step: 0.1,
-            default: 1,
-            label: "σ (Standard Deviation)",
-          },
-        ],
-        traces: [
-          {
-            name: "1/(σ√(2π))",
-            color: "#2563eb",
-            type: "scatter",
-            mode: "lines",
-            expression: "1/(sigma*sqrt(2*pi))"
-          },
-          {
-            name: "Current Value",
-            color: "#dc2626",
-            type: "scatter",
-            mode: "markers",
-            expression: "1/(sigma*sqrt(2*pi))",
-            marker: { size: 10 }
-          }
-        ]
-      },
     },
     {
       chunk: "e^{-\\frac{(x-\\mu)^2}{2\\sigma^2}}",
@@ -238,47 +86,6 @@ export const normalDistributionData: FormulaData = {
         Invariant: "Symmetry around μ",
         Limits: "±∞ → 0",
         narrative: "The exponential decay term creates the signature bell shape through its quadratic penalty function. Distance from the mean μ is squared and scaled by σ², then negated in the exponent, causing rapid decay as we move away from center. This mathematical structure ensures perfect symmetry around μ while the wings gracefully approach zero at the extremes.",
-      },
-      visualization: {
-        title: "Exponential Decay Component vs Full Normal Distribution",
-        xAxisLabel: "x",
-        yAxisLabel: "f(x)",
-        xRange: [-4, 4],
-        parameters: [
-          {
-            name: "mu",
-            min: -3,
-            max: 3,
-            step: 0.1,
-            default: 0,
-            label: "μ (Mean)",
-          },
-          {
-            name: "sigma",
-            min: 0.1,
-            max: 3,
-            step: 0.1,
-            default: 1,
-            label: "σ (Std Dev)",
-          },
-        ],
-        traces: [
-          {
-            name: "e^(-(x-μ)²/(2σ²))",
-            color: "#2563eb",
-            type: "scatter",
-            mode: "lines",
-            expression: "exp(-((x-mu)^2)/(2*sigma^2))"
-          },
-          {
-            name: "Full Normal Distribution",
-            color: "#dc2626",
-            type: "scatter",
-            mode: "lines",
-            style: "dash",
-            expression: "(1/(sigma*sqrt(2*pi)))*exp(-((x-mu)^2)/(2*sigma^2))"
-          }
-        ]
       },
     },
   ],
@@ -317,76 +124,6 @@ export const pythagoreanTheoremData: FormulaData = {
         Limits: "a→0 → 0; a→∞ → ∞",
         narrative: "The square of the first leg represents the area of a square constructed on side 'a' of the right triangle. This geometric interpretation was fundamental to the ancient Greek understanding of the theorem, where they visualized actual squares built on each side of the triangle. The quadratic relationship means that doubling the side length quadruples the area.",
       },
-      visualization: {
-        title: "Right Triangle with Square on Side a",
-        xAxisLabel: "x",
-        yAxisLabel: "y",
-        parameters: [
-          {
-            name: "a",
-            min: 1,
-            max: 8,
-            step: 0.1,
-            default: 3,
-            label: "Side a",
-          },
-          {
-            name: "b",
-            min: 1,
-            max: 8,
-            step: 0.1,
-            default: 4,
-            label: "Side b",
-          },
-        ],
-        traces: [
-          {
-            name: "Right Triangle",
-            color: "#2563eb",
-            type: "scatter",
-            mode: "lines",
-            x: [0, 0, 0], // Will be calculated: [0, a, 0, 0]
-            y: [0, 0, 0], // Will be calculated: [0, 0, b, 0]
-            fill: "toself",
-            fillcolor: "rgba(37, 99, 235, 0.1)",
-            line: { width: 3 }
-          },
-          {
-            name: "Square on side a (highlighted)",
-            color: "#dc2626",
-            type: "scatter",
-            mode: "lines",
-            x: [0, 0, 0, 0, 0], // Will be calculated: [0, a, a, 0, 0]
-            y: [0, 0, 0, 0, 0], // Will be calculated: [0, 0, -a, -a, 0]
-            fill: "toself",
-            fillcolor: "rgba(220, 38, 38, 0.3)",
-            line: { width: 2 }
-          },
-          {
-            name: "Square on side b",
-            color: "#16a34a",
-            type: "scatter",
-            mode: "lines",
-            x: [0, 0, 0, 0, 0], // Will be calculated
-            y: [0, 0, 0, 0, 0], // Will be calculated
-            fill: "toself",
-            fillcolor: "rgba(22, 163, 74, 0.2)",
-            line: { width: 2 }
-          }
-        ],
-        layout: {
-          xaxis: { 
-            scaleanchor: "y", 
-            scaleratio: 1,
-            range: [-1, 9]
-          },
-          yaxis: { 
-            range: [-9, 9] 
-          },
-          showlegend: true,
-          height: 500
-        }
-      },
     },
     {
       chunk: "b^2",
@@ -401,7 +138,6 @@ export const pythagoreanTheoremData: FormulaData = {
         Limits: "b→0 → 0; b→∞ → ∞",
         narrative: "The square of the second leg represents the area of a square constructed on side 'b' of the right triangle. Together with a², this term forms half of the fundamental equation. The geometric significance is that the combined areas of the squares on the two legs exactly equals the area of the square on the hypotenuse, providing a visual proof of the theorem.",
       },
-      // No visualization for this chunk - demonstrates optional visualization
     },
     {
       chunk: "c^2",
@@ -416,86 +152,84 @@ export const pythagoreanTheoremData: FormulaData = {
         Limits: "c→max(a,b) when other→0",
         narrative: "The square of the hypotenuse represents the area of the largest square in the Pythagorean construction. This term is always equal to the sum of the squares of the other two sides, making it the cornerstone of the theorem. The hypotenuse is always the longest side of a right triangle, and its square provides the geometric balance that makes the theorem universally true.",
       },
-      visualization: {
-        title: "Complete Pythagorean Construction with Square on Hypotenuse",
-        xAxisLabel: "x",
-        yAxisLabel: "y",
-        parameters: [
-          {
-            name: "a",
-            min: 1,
-            max: 6,
-            step: 0.1,
-            default: 3,
-            label: "Side a",
-          },
-          {
-            name: "b",
-            min: 1,
-            max: 6,
-            step: 0.1,
-            default: 4,
-            label: "Side b",
-          },
-        ],
-        traces: [
-          {
-            name: "Right Triangle",
-            color: "#2563eb",
-            type: "scatter",
-            mode: "lines",
-            x: [0, 0, 0], // Will be calculated: [0, a, 0, 0]
-            y: [0, 0, 0], // Will be calculated: [0, 0, b, 0]
-            fill: "toself",
-            fillcolor: "rgba(37, 99, 235, 0.2)",
-            line: { width: 3 }
-          },
-          {
-            name: "Square on side a",
-            color: "#dc2626",
-            type: "scatter",
-            mode: "lines",
-            x: [0, 0, 0, 0, 0], // Will be calculated
-            y: [0, 0, 0, 0, 0], // Will be calculated
-            fill: "toself",
-            fillcolor: "rgba(220, 38, 38, 0.3)",
-            line: { width: 2 }
-          },
-          {
-            name: "Square on side b",
-            color: "#16a34a",
-            type: "scatter",
-            mode: "lines",
-            x: [0, 0, 0, 0, 0], // Will be calculated
-            y: [0, 0, 0, 0, 0], // Will be calculated
-            fill: "toself",
-            fillcolor: "rgba(22, 163, 74, 0.3)",
-            line: { width: 2 }
-          },
-          {
-            name: "Square on hypotenuse c (highlighted)",
-            color: "#ca8a04",
-            type: "scatter",
-            mode: "lines",
-            x: [0, 0, 0, 0, 0], // Will be calculated
-            y: [0, 0, 0, 0, 0], // Will be calculated
-            fill: "toself",
-            fillcolor: "rgba(202, 138, 4, 0.4)",
-            line: { width: 3 }
-          }
-        ],
-        layout: {
-          xaxis: { 
-            scaleanchor: "y", 
-            scaleratio: 1,
-            range: [-7, 8]
-          },
-          yaxis: { 
-            range: [-7, 8] 
-          },
-          showlegend: true,
-          height: 600
-        }
+    },
+  ],
+};
+
+// Jarque-Bera Test Statistic Formula Data
+export const jarqueBeraData: FormulaData = {
+  meta: {
+    formula: "Jarque-Bera Test Statistic",
+    latex: "JB = \\frac{n}{6}\\left(S^2 + \\frac{(K-3)^2}{4}\\right)",
+    slug: "jarque-bera-test",
+    category: "Statistics",
+  },
+  operators: ["=", "\\times", "(", "+", ")"], // JB = (n/6) × (S² + (K-3)²/4)
+  fullFormula7Vector: {
+    Role: "Normality test statistic",
+    Domain: "ℝ⁺ → ℝ≥0",
+    Binding: "n sample size, S skewness, K kurtosis",
+    Variance: "Increases with deviation from normality",
+    Geometric: "Chi-squared distribution under null hypothesis",
+    Invariant: "Always non-negative",
+    Limits: "JB→0 for normal data; JB→∞ for non-normal",
+    narrative: "The Jarque-Bera test statistic measures how much the skewness and kurtosis of sample data deviate from those of a normal distribution. Under the null hypothesis of normality, JB follows a chi-squared distribution with 2 degrees of freedom. Values close to zero suggest normality, while large values indicate departure from normality, making it a powerful tool for testing distributional assumptions in statistical analysis.",
+  },
+  subFormulas: [
+    {
+      chunk: "JB",
+      displayName: "JB",
+      "7Vector": {
+        Role: "Test statistic result",
+        Domain: "ℝ≥0",
+        Binding: "JB is the computed test statistic",
+        Variance: "Varies with sample characteristics",
+        Geometric: "Distance from normality",
+        Invariant: "Always non-negative",
+        Limits: "JB→0 for perfect normality",
+        narrative: "The Jarque-Bera statistic quantifies the overall departure from normality by combining information about both skewness and kurtosis. A value of zero indicates perfect normality, while larger values suggest increasing evidence against the normality assumption.",
+      },
+    },
+    {
+      chunk: "\\frac{n}{6}",
+      displayName: "n/6",
+      "7Vector": {
+        Role: "Sample size scaling factor",
+        Domain: "ℝ⁺ → ℝ⁺",
+        Binding: "n is sample size",
+        Variance: "Linear in sample size",
+        Geometric: "Scaling coefficient",
+        Invariant: "Always positive",
+        Limits: "n→∞ increases sensitivity",
+        narrative: "The scaling factor n/6 adjusts the test statistic based on sample size, ensuring that larger samples provide more statistical power to detect deviations from normality. This factor is derived from the asymptotic distribution theory of sample moments and ensures the test statistic follows a chi-squared distribution under the null hypothesis.",
+      },
+    },
+    {
+      chunk: "S^2",
+      displayName: "S²",
+      "7Vector": {
+        Role: "Squared skewness component",
+        Domain: "ℝ → ℝ≥0",
+        Binding: "S is sample skewness",
+        Variance: "Quadratic in skewness",
+        Geometric: "Asymmetry penalty",
+        Invariant: "Always non-negative",
+        Limits: "S²→0 for symmetric data",
+        narrative: "The squared skewness term penalizes departures from symmetry in the data distribution. Skewness measures the asymmetry of the distribution - positive skewness indicates a longer right tail, while negative skewness indicates a longer left tail. Squaring ensures that both positive and negative skewness contribute equally to the test statistic.",
+      },
+    },
+    {
+      chunk: "\\frac{(K-3)^2}{4}",
+      displayName: "(K-3)²/4",
+      "7Vector": {
+        Role: "Excess kurtosis component",
+        Domain: "ℝ → ℝ≥0",
+        Binding: "K is sample kurtosis",
+        Variance: "Quadratic in excess kurtosis",
+        Geometric: "Tail heaviness penalty",
+        Invariant: "Zero when K=3 (normal)",
+        Limits: "(K-3)²→0 for normal kurtosis",
+        narrative: "The excess kurtosis term measures how much the tail behavior of the data deviates from that of a normal distribution, which has kurtosis K=3. Values above 3 indicate heavy tails (leptokurtic), while values below 3 indicate light tails (platykurtic). The factor of 4 in the denominator provides appropriate weighting relative to the skewness term in the overall test statistic.",
       },
     },
   ],
@@ -505,9 +239,7 @@ export const pythagoreanTheoremData: FormulaData = {
 export const formulaRegistry: Record<string, FormulaData> = {
   "normal-distribution": normalDistributionData,
   "pythagorean-theorem": pythagoreanTheoremData,
-  // Future formulas can be added here
-  // 'quadratic-formula': quadraticFormulaData,
-  // 'euler-identity': eulerIdentityData,
+  "jarque-bera-test": jarqueBeraData,
 };
 
 // Helper function to get formula data by slug

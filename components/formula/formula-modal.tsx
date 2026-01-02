@@ -1,27 +1,20 @@
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FormulaChunk } from '@/app/formula/data';
-import { FormulaVisualization } from './formula-visualization';
 import { LaTeXRenderer } from '@/components/latex-renderer';
 import { useState, useEffect } from 'react';
 
 interface FormulaModalProps {
   isOpen: boolean;
   selectedChunk: FormulaChunk | null;
-  parameters: Record<string, number>;
   onClose: () => void;
-  onParameterChange: (paramName: string, value: number) => void;
-  onBackdropClick: (e: React.MouseEvent) => void;
   modalRef: React.RefObject<HTMLDivElement>;
 }
 
 export function FormulaModal({ 
   isOpen, 
   selectedChunk, 
-  parameters, 
   onClose, 
-  onParameterChange, 
-  onBackdropClick, 
   modalRef 
 }: FormulaModalProps) {
   const [isClosing, setIsClosing] = useState(false);
@@ -116,15 +109,9 @@ export function FormulaModal({
         </div>
 
         <div className="border-t border-gray-200 dark:border-white/10 pt-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Interactive Visualization
-          </h3>
-          <div className="bg-gray-50 dark:bg-white/5 rounded-lg p-4">
-            <FormulaVisualization
-              chunk={selectedChunk}
-              parameters={parameters}
-              onParameterChange={onParameterChange}
-            />
+          <div className="text-center text-gray-500 dark:text-gray-400 italic">
+            <p>Interactive visualizations have been removed from this formula system.</p>
+            <p className="mt-2 text-sm">Focus on the mathematical properties and 7-vector analysis above.</p>
           </div>
         </div>
       </div>
