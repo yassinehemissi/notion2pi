@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormulaListItem, FormulaItem, SearchResponse } from '@/types/formula';
-import { FormulaData } from '@/app/formula/data';
+import { FormulaData } from '@/types';
 
 // Query keys for consistent cache management
 export const formulaQueryKeys = {
@@ -9,7 +9,7 @@ export const formulaQueryKeys = {
   list: (filters: Record<string, any>) => [...formulaQueryKeys.lists(), filters] as const,
   details: () => [...formulaQueryKeys.all, 'detail'] as const,
   detail: (slug: string) => [...formulaQueryKeys.details(), slug] as const,
-  search: (query: string, page: number, limit: number) => 
+  search: (query: string, page: number, limit: number) =>
     [...formulaQueryKeys.all, 'search', { query, page, limit }] as const,
 };
 
@@ -59,7 +59,7 @@ export function useSearchQuery(query: string, page: number = 1, limit: number = 
         page: page.toString(),
         limit: limit.toString(),
       });
-      
+
       const response = await fetch(`/api/formulas/search?${params}`);
       if (!response.ok) {
         throw new Error('Failed to search formulas');
@@ -76,7 +76,7 @@ export function useSearchQuery(query: string, page: number = 1, limit: number = 
 // Generate new formula mutation
 export function useGenerateFormulaMutation() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (description: string): Promise<{ slug: string; formula: string }> => {
       const response = await fetch('/formula', {
@@ -86,19 +86,19 @@ export function useGenerateFormulaMutation() {
         },
         body: JSON.stringify({ description }),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to generate formula');
       }
-      
+
       return response.json();
     },
     onSuccess: (data) => {
       // Invalidate and refetch formula lists
       queryClient.invalidateQueries({ queryKey: formulaQueryKeys.lists() });
       queryClient.invalidateQueries({ queryKey: formulaQueryKeys.all });
-      
+
       // Prefetch the newly created formula
       queryClient.prefetchQuery({
         queryKey: formulaQueryKeys.detail(data.slug),
@@ -114,7 +114,7 @@ export function useGenerateFormulaMutation() {
 // Prefetch related formulas
 export function usePrefetchFormula() {
   const queryClient = useQueryClient();
-  
+
   return (slug: string) => {
     queryClient.prefetchQuery({
       queryKey: formulaQueryKeys.detail(slug),
@@ -131,7 +131,7 @@ export function usePrefetchFormula() {
 // Optimistic updates for formula interactions
 export function useOptimisticFormulaUpdate() {
   const queryClient = useQueryClient();
-  
+
   return {
     // Optimistically update formula view count
     incrementViewCount: (slug: string) => {
@@ -144,7 +144,7 @@ export function useOptimisticFormulaUpdate() {
         }
       );
     },
-    
+
     // Optimistically add to favorites (if we implement this feature)
     toggleFavorite: (slug: string, isFavorite: boolean) => {
       queryClient.setQueryData(
