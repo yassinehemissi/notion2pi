@@ -5,22 +5,20 @@ import { Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { GlassPanel } from '../../atoms/glass-panel';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from "sonner";
 import { useRouter } from 'next/navigation';
 import { generateFormulaAction } from '@/lib/actions';
 
 export function FormulaGenerator() {
     const [description, setDescription] = useState('');
     const [isPending, setIsPending] = useState(false);
-    const { toast } = useToast();
+
     const router = useRouter();
 
     const handleGenerate = async () => {
         if (!description.trim()) {
-            toast({
-                title: "Validation Error",
+            toast("Validation Error", {
                 description: "Please enter a description",
-                variant: "destructive",
             });
             return;
         }
@@ -29,17 +27,15 @@ export function FormulaGenerator() {
         try {
             const result = await generateFormulaAction(description.trim());
 
-            toast({
-                title: "Formula Generated!",
+            toast("Formula Generated!", {
                 description: `Successfully created ${result.formula}`,
             });
 
             router.push(`/formula/${result.slug}`);
         } catch (err) {
-            toast({
-                title: "Generation Failed",
+            toast("Generation Failed", {
                 description: err instanceof Error ? err.message : "An unexpected error occurred",
-                variant: "destructive",
+
             });
         } finally {
             setIsPending(false);

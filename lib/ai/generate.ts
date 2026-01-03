@@ -4,7 +4,7 @@ import { FormulaDataSchema } from './schemas';
 
 export const generateFormulaData = async (description: string) => {
   const { output } = await generateText({
-    model: openai('gpt-4o'),
+    model: openai('gpt-4o-mini'),
     output: Output.object({ schema: FormulaDataSchema }),
     prompt: `
       Generate a complete mathematical formula object based on this description: "${description}"

@@ -5,27 +5,25 @@ import { Button } from '@/components/ui/button';
 import { GlassPanel } from '../../atoms/glass-panel';
 import { MixedLatexText } from '../../atoms/mixed-latex-text';
 import { FormulaData } from '@/types';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from "sonner";
 
 interface FormulaPropertiesProps {
     formulaData: FormulaData;
 }
 
 export function FormulaProperties({ formulaData }: FormulaPropertiesProps) {
-    const { toast } = useToast();
+
 
     const handleCopyLatex = async () => {
         try {
             await navigator.clipboard.writeText(formulaData.meta.latex);
-            toast({
-                title: "LaTeX Copied!",
+            toast("LaTeX Copied!", {
                 description: "Formula LaTeX has been copied to clipboard",
             });
         } catch (err) {
-            toast({
-                title: "Copy Failed",
+            toast("Copy Failed", {
                 description: "Failed to copy LaTeX to clipboard",
-                variant: "destructive",
+
             });
         }
     };
@@ -34,15 +32,12 @@ export function FormulaProperties({ formulaData }: FormulaPropertiesProps) {
         const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
         try {
             await navigator.clipboard.writeText(currentUrl);
-            toast({
-                title: "Link Copied!",
+            toast("Link Copied!", {
                 description: "Formula page link has been copied to clipboard",
             });
         } catch (err) {
-            toast({
-                title: "Share Failed",
+            toast("Share Failed", {
                 description: "Failed to copy link to clipboard",
-                variant: "destructive",
             });
         }
     };

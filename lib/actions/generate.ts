@@ -6,12 +6,19 @@ import { CreateFormulaSchema } from '../validators/formula';
 import { ValidationError, AIError } from '../errors';
 import { revalidatePath } from 'next/cache';
 
+const stopUsage = true
+
 export async function generateFormulaAction(description: string) {
     try {
+
+        if (stopUsage) {
+            console.error('Currently the api is deactivated so i don"t go bankrupt ');
+            throw new Error('An unexpected error occurred while generating the formula');
+        }
         // 1. Validate input
         const validated = CreateFormulaSchema.safeParse({ description });
         if (!validated.success) {
-            throw new ValidationError(validated.error.errors[0].message);
+            throw new ValidationError(validated.error.message);
         }
 
         // 2. Generate with AI

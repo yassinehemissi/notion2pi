@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { FormulaChunk } from '@/types';
 import { LaTeXRenderer } from '../../atoms/latex-renderer';
 import { MixedLatexText } from '../../atoms/mixed-latex-text';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from "sonner";
 import { useState, useEffect } from 'react';
 
 interface FormulaModalProps {
@@ -23,21 +23,19 @@ export function FormulaModal({
 }: FormulaModalProps) {
     const [isClosing, setIsClosing] = useState(false);
     const [shouldRender, setShouldRender] = useState(false);
-    const { toast } = useToast();
+
 
     const handleCopyChunkLatex = async () => {
         if (!selectedChunk) return;
         try {
             await navigator.clipboard.writeText(selectedChunk.chunk);
-            toast({
-                title: "LaTeX Copied!",
+            toast("LaTeX Copied!", {
                 description: "Sub-formula LaTeX has been copied to clipboard",
             });
         } catch (err) {
-            toast({
-                title: "Copy Failed",
+            toast("Copy Failed", {
                 description: "Failed to copy LaTeX to clipboard",
-                variant: "destructive",
+
             });
         }
     };
