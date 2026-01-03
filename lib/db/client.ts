@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@/prisma/generated/client'; // Adjust path as needed
 import { PrismaLibSql } from '@prisma/adapter-libsql'
 
 const prismaClientSingleton = () => {
