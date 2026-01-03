@@ -1,12 +1,12 @@
 import { openai } from '@ai-sdk/openai';
-import { generateObject } from 'ai';
+import { generateText, Output } from 'ai';
 import { FormulaDataSchema } from './schemas';
 
 export const generateFormulaData = async (description: string) => {
-    const { object } = await generateObject({
-        model: openai('gpt-4o'),
-        schema: FormulaDataSchema,
-        prompt: `
+  const { output } = await generateText({
+    model: openai('gpt-4o'),
+    output: Output.object({ schema: FormulaDataSchema }),
+    prompt: `
       Generate a complete mathematical formula object based on this description: "${description}"
 
       Requirements:
@@ -48,7 +48,6 @@ export const generateFormulaData = async (description: string) => {
 
       Make sure to escape backslashes properly in LaTeX (use \\\\ instead of \\).
     `,
-    });
-
-    return object;
+  });
+  return output;
 };
