@@ -39,3 +39,4 @@ next-env.d.ts
 formulas.db
 formulas.db-shm
 formulas.db-wal
+# .env

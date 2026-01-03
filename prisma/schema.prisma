@@ -1,0 +1,36 @@
+datasource db {
+  provider = "sqlite"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Formula {
+  id                 Int            @id @default(autoincrement())
+  slug               String         @unique
+  formulaName        String         @map("formula_name")
+  latex              String
+  category           String
+  fullFormulaSevenVector String         @map("fullFormulaSevenVector")
+  operators          String
+  babyDefinition     String?        @map("baby_definition")
+  createdAt          DateTime       @default(now()) @map("created_at")
+  updatedAt          DateTime       @updatedAt @map("updated_at")
+  chunks             FormulaChunk[]
+
+  @@map("formulas")
+}
+
+model FormulaChunk {
+  id             Int     @id @default(autoincrement())
+  formulaId      Int     @map("formula_id")
+  chunkOrder     Int     @map("chunk_order")
+  chunk          String
+  displayName    String  @map("display_name")
+  sevenVector    String  @map("seven_vector")
+  babyDefinition String? @map("baby_definition")
+  formula        Formula @relation(fields: [formulaId], references: [id], onDelete: Cascade)
+
+  @@map("formula_chunks")
+}

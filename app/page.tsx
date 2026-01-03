@@ -1,71 +1,20 @@
-"use client";
+import Link from 'next/link';
+import { ArrowRight, Sparkles } from 'lucide-react';
+import { FloatingSymbols } from '@/components/features/layout/floating-symbols';
+import { AppFooter } from '@/components/features/layout/app-footer';
+import { AppHeader } from '@/components/features/layout/app-header';
+import { FormulaGenerator } from '@/components/features/formula-generator/formula-generator';
+import { getFormulas } from '@/lib/actions/formula';
 
-import Link from "next/link";
-import { useState } from "react";
-import { Sparkles, Loader2, ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { FloatingFormulas } from "@/components/floating-formulas";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { GlassPanel } from "@/components/glass-panel";
-import { LoadingSpinner } from "@/components/loading-spinner";
-import { AppFooter } from "@/components/app-footer";
-import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
-import { useFormulas } from "@/hooks/use-formulas";
-import { useGenerateFormulaMutation } from "@/hooks/use-formulas-query";
-
-export default function Home() {
-  const [description, setDescription] = useState("");
-  const { toast } = useToast();
-  const router = useRouter();
-  const { formulas, isLoading: isLoadingFormulas } = useFormulas();
-  const generateFormulaMutation = useGenerateFormulaMutation();
-
-  const handleGenerate = async () => {
-    if (!description.trim()) {
-      toast({
-        title: "Validation Error",
-        description: "Please enter a description",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const result = await generateFormulaMutation.mutateAsync(description.trim());
-
-      toast({
-        title: "Formula Generated!",
-        description: `Successfully created ${result.formula}`,
-      });
-
-      // Redirect to the generated formula page
-      router.push(`/formula/${result.slug}`);
-    } catch (err) {
-      toast({
-        title: "Generation Failed",
-        description: err instanceof Error ? err.message : "An unexpected error occurred",
-        variant: "destructive",
-      });
-    }
-  };
+export default async function Home() {
+  const formulas = await getFormulas();
+  const trendingFormulas = formulas.slice(0, 3);
 
   return (
     <div className="min-h-screen w-full overflow-hidden flex flex-col relative">
-      <FloatingFormulas />
+      <FloatingSymbols />
+      <AppHeader showBack={false} />
 
-      {/* Header */}
-      <header className="w-full max-w-4xl mx-auto p-6 z-20 flex justify-between items-center flex-shrink-0">
-        <div className="flex items-center gap-2">
-          <span className="text-xl font-display font-semibold tracking-tight">
-            Notion2Pi
-          </span>
-        </div>
-        <ThemeToggle />
-      </header>
-
-      {/* Main Content - Takes remaining space */}
       <main className="flex-1 z-10 w-full max-w-3xl mx-auto px-6 flex flex-col items-center justify-center py-8">
         <div className="w-full space-y-12">
           <div className="relative group text-center space-y-6">
@@ -80,106 +29,50 @@ export default function Home() {
             </p>
           </div>
 
-          <GlassPanel hover className="w-full p-6 sm:p-8 md:p-10">
+          <div className="space-y-12">
+            <FormulaGenerator />
+
             <div className="space-y-6">
-              <div className="flex items-start justify-between mb-6">
-                <div>
-                  <h2 className="text-2xl font-display font-semibold text-gray-900 dark:text-white mb-1">
-                    Explore Formulas
-                  </h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Browse existing formulas or generate new ones with AI
-                  </p>
-                </div>
-                <Sparkles className="h-6 w-6 text-gray-400" />
+              <div className="flex items-center justify-between px-2">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-blue-500" />
+                  Trending Formulas
+                </h3>
+                <Link
+                  href="/browse"
+                  className="text-sm text-gray-500 hover:text-black dark:hover:text-white transition-colors flex items-center gap-1"
+                >
+                  View all <ArrowRight className="h-3 w-3" />
+                </Link>
               </div>
 
-              {/* Single Column Layout */}
-              <div className="space-y-6">
-                {/* Generate New Formula - Full Width */}
-                <div className="space-y-4">
-                  <div className="space-y-3">
-                    <Textarea
-                      placeholder="e.g., 'The quadratic formula for solving ax² + bx + c = 0' or 'Einstein's mass-energy equivalence'"
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      rows={3}
-                      className="w-full resize-none bg-white dark:bg-white/5 border-gray-300 dark:border-white/10"
-                    />
-
-                    {generateFormulaMutation.error && (
-                      <div className="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/20 p-2 rounded">
-                        {generateFormulaMutation.error.message}
-                      </div>
-                    )}
-
-                    <Button
-                      onClick={handleGenerate}
-                      disabled={generateFormulaMutation.isPending || !description.trim()}
-                      className="w-full bg-gray-900 hover:bg-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700 text-white"
-                    >
-                      {generateFormulaMutation.isPending ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Generating...
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="mr-2 h-4 w-4" />
-                          Generate Formula
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Browse Formulas - Examples in Rows */}
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {isLoadingFormulas ? (
-                      <div className="col-span-full">
-                        <LoadingSpinner size="md" className="py-8" />
-                      </div>
-                    ) : formulas.length > 0 ? (
-                      formulas.slice(0, 3).map((formula) => (
-                        <Link
-                          key={formula.slug}
-                          href={`/formula/${formula.slug}`}
-                          className="block p-4 h-full bg-white dark:bg-white/5 rounded-lg border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
-                        >
-                          <div className="font-medium text-gray-900 dark:text-white text-sm sm:text-base">
-                            {formula.formula}
-                          </div>
-                          <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">
-                            {formula.category}
-                          </div>
-                        </Link>
-                      ))
-                    ) : (
-                      <div className="col-span-full text-center py-4 text-gray-500 dark:text-gray-400">
-                        No formulas available
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Browse All Arrow - Grey */}
-                  <div className="pt-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {trendingFormulas.length > 0 ? (
+                  trendingFormulas.map((f: any) => (
                     <Link
-                      href="/browse"
-                      className="flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors text-sm"
+                      key={f.slug}
+                      href={`/formula/${f.slug}`}
+                      className="group p-4 bg-white dark:bg-white/5 rounded-2xl border border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20 transition-all hover:scale-[1.02] shadow-sm"
                     >
-                      Browse All Formulas
-                      <ArrowRight className="h-4 w-4" />
+                      <div className="font-medium text-gray-900 dark:text-white mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        {f.formula}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-tighter">
+                        {f.category}
+                      </div>
                     </Link>
+                  ))
+                ) : (
+                  <div className="col-span-full text-center py-8 text-sm text-gray-500 italic">
+                    Start by generating your first formula above.
                   </div>
-                </div>
+                )}
               </div>
             </div>
-          </GlassPanel>
+          </div>
         </div>
       </main>
 
-      {/* Footer */}
       <AppFooter className="flex-shrink-0" />
     </div>
   );
