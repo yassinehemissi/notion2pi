@@ -1,11 +1,28 @@
 import { openai } from '@ai-sdk/openai';
 import { generateText, Output } from 'ai';
 import { FormulaDataSchema } from './schemas';
+import { groq } from '@ai-sdk/groq';
+
+const getProvider = (provider: "openai" | "groq", model: string) => {
+  switch (provider) {
+    case 'groq':
+      return groq(model);
+    case 'openai':
+      return openai(model);
+    default:
+      return openai("gpt-4o")
+  }
+}
+
 
 export const generateFormulaData = async (description: string) => {
   const { output } = await generateText({
-    model: openai('gpt-4o-mini'),
+    model: getProvider('groq', 'moonshotai/kimi-k2-instruct-0905'),
     output: Output.object({ schema: FormulaDataSchema }),
+    system:
+      `You are a mathematical expert. ` +
+      `If the description does not match a famous mathematical formula, return an empty object. ` +
+      `Mathematical formulas can be from any field (physics, finance, engineering, etc.).`,
     prompt: `
       Generate a complete mathematical formula object based on this description: "${description}"
 
@@ -49,5 +66,6 @@ export const generateFormulaData = async (description: string) => {
       Make sure to escape backslashes properly in LaTeX (use \\\\ instead of \\).
     `,
   });
+  console.log(output)
   return output;
 };

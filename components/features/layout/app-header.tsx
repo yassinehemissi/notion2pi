@@ -57,7 +57,10 @@ export function AppHeader({ showBack = true }: AppHeaderProps) {
                 />
             </form>
 
-            <ThemeToggle />
+            <div className="flex items-center gap-2">
+
+                <ThemeToggle />
+            </div>
         </header>
     );
 }

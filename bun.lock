@@ -5,6 +5,7 @@
     "": {
       "name": "nextjs",
       "dependencies": {
+        "@ai-sdk/groq": "^3.0.2",
         "@ai-sdk/openai": "^3.0.2",
         "@prisma/adapter-libsql": "^7.2.0",
         "@prisma/client": "^7.2.0",
@@ -82,6 +83,8 @@
   ],
   "packages": {
     "@ai-sdk/gateway": ["@ai-sdk/gateway@3.0.5", "", { "dependencies": { "@ai-sdk/provider": "3.0.1", "@ai-sdk/provider-utils": "4.0.2", "@vercel/oidc": "3.0.5" }, "peerDependencies": { "zod": "^3.25.76 || ^4.1.8" } }, "sha512-AtxA1wcoKTHr9uFoC5KZEXqJP4SMW4j3VbcliUECUYssbWbePJ9+b3AaCny1lxf1xhDK9EIyAgBOKhXoQSr9nA=="],
+
+    "@ai-sdk/groq": ["@ai-sdk/groq@3.0.2", "", { "dependencies": { "@ai-sdk/provider": "3.0.1", "@ai-sdk/provider-utils": "4.0.2" }, "peerDependencies": { "zod": "^3.25.76 || ^4.1.8" } }, "sha512-Gs7Ir9cUSYlbDIArNMt3+0Ql+OrEKELQhYfji5CCxQ8MdcJGbhbyPf9AQralu9PMxq/QEy2JSOgYW5zOnHDd2g=="],
 
     "@ai-sdk/openai": ["@ai-sdk/openai@3.0.2", "", { "dependencies": { "@ai-sdk/provider": "3.0.1", "@ai-sdk/provider-utils": "4.0.2" }, "peerDependencies": { "zod": "^3.25.76 || ^4.1.8" } }, "sha512-GONwavgSWtcWO+t9+GpGK8l7nIYh+zNtCL/NYDSeHxHiw6ksQS9XMRWrZyE5NpJ0EXNxSAWCHIDmb1WvTqhq9Q=="],
 
