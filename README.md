@@ -80,6 +80,17 @@ Depending on your chosen provider, add the corresponding key:
 - `GOOGLE_GENERATIVE_AI_API_KEY`
 - `GROQ_API_KEY`
 
+### Database 
+This uses [Turso](https://turso.tech/) but you can still use a local sqlite database just set the environement variables too.
+```
+# Database Configuration
+# Local
+LOCAL_DATABASE_URL="file:./dev.db"
+# Turso
+TURSO_AUTH_TOKEN=
+TURSO_DATABASE_URL=
+```
+
 ---
 
 ## Author
