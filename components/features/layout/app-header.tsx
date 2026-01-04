@@ -30,7 +30,7 @@ export function AppHeader({ showBack = true }: AppHeaderProps) {
     };
 
     return (
-        <header className="w-full max-w-6xl mx-auto p-6 z-20 flex justify-between items-center">
+        <header className="w-full max-w-6xl mx-auto p-6 flex justify-between items-center">
             {showBack ? (
                 <Link
                     href="/"

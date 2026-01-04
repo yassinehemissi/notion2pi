@@ -5,6 +5,10 @@
 /.pnp
 .pnp.js
 
+bun.lock
+dev.db 
+
+
 # testing
 /coverage
 

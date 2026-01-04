@@ -28,10 +28,10 @@ export function FormulaRenderer({ formulaData, onChunkClick }: FormulaRendererPr
                                 latex={chunk.chunk}
                                 displayName={chunk.displayName}
                                 onClick={() => onChunkClick(chunk.chunk)}
-                                className="text-lg sm:text-xl lg:text-2xl hover:text-black dark:hover:text-white transition-colors cursor-pointer"
+                                className="text-2xl hover:text-black dark:hover:text-white transition-colors cursor-pointer"
                             />
                             {index < formulaData.subFormulas.length - 1 && (
-                                <span className="text-lg sm:text-xl lg:text-2xl mx-1 text-gray-400">
+                                <span className="text-2xl mx-1 text-gray-400">
                                     ,
                                 </span>
                             )}
