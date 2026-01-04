@@ -51,7 +51,7 @@ export function FormulaGenerator() {
                             Explore Formulas
                         </h2>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Browse existing formulas or generate new ones with AI (generation only available in <a href='https://github.com/yassinehemissi/notion2pi/'>development</a>)
+                            Browse existing formulas or generate new ones with AI (generation is only available in a <a target='_blank' className='text-gray-500 underline hover:text-black dark:hover:text-white transition-colors' href='https://github.com/yassinehemissi/notion2pi/'>local environment with configured API keys</a>).
                         </p>
                     </div>
                     <Sparkles className="h-6 w-6 text-gray-400" />

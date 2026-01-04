@@ -61,6 +61,24 @@ export function FormulaProperties({ formulaData }: FormulaPropertiesProps) {
                     <Bookmark className="h-5 w-5" />
                 </Button>
             </div>
+            {formulaData.fullFormulaSevenVector.babyDefinition && (
+                <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800/30">
+                    <div className="flex items-center space-x-2 mb-2">
+                        <span className="text-lg">👶</span>
+                        <h4 className="text-sm font-medium text-blue-800 dark:text-blue-200">Baby Fast Definition</h4>
+                    </div>
+                    <div className="text-sm text-blue-700 dark:text-blue-300 leading-relaxed">
+                        <MixedLatexText>{formulaData.fullFormulaSevenVector.babyDefinition}</MixedLatexText>
+                    </div>
+                </div>
+            )}
+
+            <div className="mb-4 p-3 bg-gray-50 dark:bg-white/5 rounded-lg">
+                <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                    <MixedLatexText>{formulaData.fullFormulaSevenVector.narrative}</MixedLatexText>
+                </div>
+            </div>
+
 
             <div className="space-y-3 text-sm mb-4">
                 {Object.entries(formulaData.fullFormulaSevenVector)
@@ -75,23 +93,6 @@ export function FormulaProperties({ formulaData }: FormulaPropertiesProps) {
                     ))}
             </div>
 
-            {formulaData.fullFormulaSevenVector.babyDefinition && (
-                <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800/30">
-                    <div className="flex items-center space-x-2 mb-2">
-                        <span className="text-lg">👶</span>
-                        <h4 className="text-sm font-medium text-blue-800 dark:text-blue-200">Baby Fast Definition</h4>
-                    </div>
-                    <p className="text-sm text-blue-700 dark:text-blue-300 leading-relaxed">
-                        <MixedLatexText>{formulaData.fullFormulaSevenVector.babyDefinition}</MixedLatexText>
-                    </p>
-                </div>
-            )}
-
-            <div className="mb-4 p-3 bg-gray-50 dark:bg-white/5 rounded-lg">
-                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                    <MixedLatexText>{formulaData.fullFormulaSevenVector.narrative}</MixedLatexText>
-                </p>
-            </div>
 
             <div className="mt-6 pt-4 border-t border-gray-200 dark:border-white/10 flex items-center justify-between">
                 <div className="flex space-x-3">

@@ -67,16 +67,14 @@ export function FormulaModal({
 
   return (
     <div
-      className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-max flex items-center justify-center p-4 modal-backdrop ${
-        isClosing ? "closing" : ""
-      }`}
+      className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-max flex items-center justify-center p-4 modal-backdrop ${isClosing ? "closing" : ""
+        }`}
       onClick={handleBackdropClick}
     >
       <div
         ref={modalRef}
-        className={`glass-panel bg-white/90 dark:bg-black/90 border border-gray-200 dark:border-white/20 rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl modal-content ${
-          isClosing ? "closing" : ""
-        }`}
+        className={`glass-panel bg-white/90 dark:bg-black/90 border border-gray-200 dark:border-white/20 rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl modal-content ${isClosing ? "closing" : ""
+          }`}
       >
         <div className="flex items-start justify-between mb-6 pt-3">
           <div className="flex-1">
@@ -107,18 +105,18 @@ export function FormulaModal({
             variant="ghost"
             size="icon"
             onClick={handleClose}
-            className="text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-lg hover:bg-gray-200 dark:hover:bg-white/10 ml-4 transition-colors duration-200"
+            className="fixed right-10 text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-lg hover:bg-gray-200 dark:hover:bg-white/10 ml-4 transition-colors duration-200"
           >
             <X className="h-5 w-5" />
           </Button>
         </div>
 
         <div className="mb-6 p-4 bg-gray-50 dark:bg-white/5 rounded-lg">
-          <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+          <div className="text-gray-700 dark:text-gray-300 leading-relaxed">
             <MixedLatexText>
               {selectedChunk.sevenVector.narrative}
             </MixedLatexText>
-          </p>
+          </div>
         </div>
 
         <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/30 rounded-lg">

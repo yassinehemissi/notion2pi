@@ -1,23 +1,10 @@
-import { openai } from '@ai-sdk/openai';
 import { generateText, Output } from 'ai';
 import { FormulaDataSchema } from './schemas';
-import { groq } from '@ai-sdk/groq';
-
-const getProvider = (provider: "openai" | "groq", model: string) => {
-  switch (provider) {
-    case 'groq':
-      return groq(model);
-    case 'openai':
-      return openai(model);
-    default:
-      return openai("gpt-4o")
-  }
-}
-
+import { getProvider } from './ai-provider';
 
 export const generateFormulaData = async (description: string) => {
   const { output } = await generateText({
-    model: getProvider('groq', 'moonshotai/kimi-k2-instruct-0905'),
+    model: getProvider(),
     output: Output.object({ schema: FormulaDataSchema }),
     system:
       `You are a mathematical expert. ` +
@@ -65,7 +52,8 @@ export const generateFormulaData = async (description: string) => {
 
       Make sure to escape backslashes properly in LaTeX (use \\\\ instead of \\).
     `,
+
   });
-  console.log(output)
+
   return output;
 };

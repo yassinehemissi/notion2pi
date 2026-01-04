@@ -6,7 +6,7 @@ import { CreateFormulaSchema } from '../validators/formula';
 import { ValidationError, AIError } from '../errors';
 import { revalidatePath } from 'next/cache';
 
-const stopUsage = true
+const stopUsage = false
 
 export async function generateFormulaAction(description: string) {
     try {

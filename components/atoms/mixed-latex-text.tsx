@@ -11,10 +11,10 @@ interface MixedLatexTextProps {
 
 export function MixedLatexText({ children, className = '' }: MixedLatexTextProps) {
     const processedText = children
-        .replace(/\\\(/g, '$')
-        .replace(/\\\)/g, '$')
-        .replace(/\\\[/g, '$$')
-        .replace(/\\\]/g, '$$');
+        .replace(/\\\(\s*/g, '$')
+        .replace(/\s*\\\)/g, '$')
+        .replace(/\\\[\s*/g, '$$')
+        .replace(/\s*\\\]/g, '$$');
 
     return (
         <span className={className}>
