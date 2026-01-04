@@ -25,6 +25,7 @@ export const createFormula = async (data: FormulaData) => {
 };
 
 export const getFormulaBySlug = async (slug: string) => {
+    'use cache';
     const formula = await prisma.formula.findUnique({
         where: { slug },
         include: {
@@ -57,6 +58,7 @@ export const getFormulaBySlug = async (slug: string) => {
     };
 };
 export const getAllFormulas = async () => {
+    'use cache';
     const formulas = await prisma.formula.findMany({
         orderBy: { createdAt: 'desc' },
         select: {
@@ -74,6 +76,7 @@ export const getAllFormulas = async () => {
 };
 
 export const searchFormulas = async (query: string, limit: number, offset: number) => {
+    'use cache';
     const where = query
         ? {
             OR: [

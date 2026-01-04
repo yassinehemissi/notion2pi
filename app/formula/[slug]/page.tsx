@@ -1,3 +1,5 @@
+'use cache'
+
 import { AppHeader } from '@/components/features/layout/app-header';
 import { FloatingSymbols } from '@/components/features/layout/floating-symbols';
 import { AppFooter } from '@/components/features/layout/app-footer';

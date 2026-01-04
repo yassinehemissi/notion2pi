@@ -51,7 +51,7 @@ export function FormulaGenerator() {
                             Explore Formulas
                         </h2>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Browse existing formulas or generate new ones with AI
+                            Browse existing formulas or generate new ones with AI (generation only available in <a href='https://github.com/yassinehemissi/notion2pi/'>development</a>)
                         </p>
                     </div>
                     <Sparkles className="h-6 w-6 text-gray-400" />
@@ -69,7 +69,7 @@ export function FormulaGenerator() {
 
                         <Button
                             onClick={handleGenerate}
-                            disabled={isPending || !description.trim()}
+                            disabled={process.env.NODE_ENV == "production" || isPending || !description.trim()}
                             className="w-full bg-gray-900 hover:bg-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700 text-white"
                         >
                             {isPending ? (

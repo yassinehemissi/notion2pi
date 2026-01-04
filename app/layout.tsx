@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import { Inter, Outfit, Playfair_Display } from 'next/font/google';
 import { ThemeProvider } from '@/contexts/theme-context';
 import { Toaster } from '@/components/ui/sonner';
+import { Suspense } from 'react';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const playfair = Playfair_Display({
@@ -16,6 +17,20 @@ const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit' });
 export const metadata: Metadata = {
   title: 'Notion2Pi | Abstract Math Visualized',
   description: 'A Bit Easier Abstract Math - Discover the meaning behind symbols in formulas using AI and 7-Vector analysis.',
+  icons: {
+    icon: [
+      {
+        media: '(prefers-color-scheme: dark)',
+        url: '/favicon-dark.ico',
+        href: '/favicon-dark.ico',
+      },
+      {
+        media: '(prefers-color-scheme: light)',
+        url: '/favicon-light.ico',
+        href: '/favicon-light.ico',
+      },
+    ],
+  },
 };
 
 export default function RootLayout({
@@ -33,8 +48,10 @@ export default function RootLayout({
           disableTransitionOnChange
         >
 
-          <Toaster position="top-center" />
-          {children}
+          <Toaster position="bottom-right" />
+          <Suspense>
+            {children}
+          </Suspense>
         </ThemeProvider>
       </body>
     </html>
