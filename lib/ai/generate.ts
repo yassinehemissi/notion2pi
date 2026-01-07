@@ -1,6 +1,7 @@
 import { generateText, Output } from 'ai';
 import { FormulaDataSchema } from './schemas';
 import { getProvider } from './ai-provider';
+import { ONE_SHOT_EXAMPLE } from './one-shot';
 
 export const generateFormulaData = async (description: string) => {
   const { output } = await generateText({
@@ -51,7 +52,8 @@ export const generateFormulaData = async (description: string) => {
       - "\\\\sum_{i=1}^{n}" for summations
 
       Make sure to escape backslashes properly in LaTeX (use \\\\ instead of \\).
-    `,
+      
+      ` + ONE_SHOT_EXAMPLE,
 
   });
 
